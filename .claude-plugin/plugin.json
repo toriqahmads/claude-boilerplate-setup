@@ -1,0 +1,11 @@
+{
+  "name": "claude-boilerplate",
+  "version": "0.1.0",
+  "description": "Setup + phase-based planning workflow for Claude Code: setup skills, a brainstorm-to-review pipeline, a design/execute/review agent squad, debugging + security on-ramps, deterministic hooks, and MCP wiring.",
+  "author": { "name": "Toriq Ahmad", "email": "toriqahmads@gmail.com" },
+  "homepage": "https://github.com/toriqahmads/claude-boilerplate-setup",
+  "repository": "https://github.com/toriqahmads/claude-boilerplate-setup",
+  "license": "MIT",
+  "keywords": ["boilerplate", "setup", "planning", "workflow", "skills", "agents", "tdd", "code-review"],
+  "hooks": "./hooks/hooks.json"
+}

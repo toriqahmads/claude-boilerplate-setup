@@ -1,0 +1,14 @@
+{
+  "name": "claude-boilerplate-market",
+  "owner": { "name": "Toriq Ahmad", "email": "toriqahmads@gmail.com" },
+  "description": "Marketplace hosting the claude-boilerplate setup + planning-workflow plugin.",
+  "plugins": [
+    {
+      "name": "claude-boilerplate",
+      "source": "./",
+      "description": "Setup + phase-based planning workflow, agent squad, hooks, and MCP wiring for Claude Code.",
+      "license": "MIT",
+      "category": "workflow"
+    }
+  ]
+}

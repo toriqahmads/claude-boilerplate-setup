@@ -1,0 +1,9 @@
+# Local Claude Code settings — where a `--scope local` plugin install writes its
+# gitignored enable-reference. Keeps a project-local install out of git.
+.claude/settings.local.json
+
+# Secrets / environment — never commit real tokens (e.g. MCP auth). Pass them via
+# `claude mcp add --header`/`-e`, or keep them in a gitignored .env.
+.env
+.env.local
+.env.*.local
