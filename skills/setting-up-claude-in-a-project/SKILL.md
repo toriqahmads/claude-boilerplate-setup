@@ -59,6 +59,24 @@ build on, or are we starting from a spec/plan?" — then route on the answer.
 
 `CLAUDE.md` is the **canonical** context file. `AGENTS.md` is a **symlink** to
 `CLAUDE.md` (`ln -s CLAUDE.md AGENTS.md`), so every agent tool reads one source of
-truth. Both sub-skills follow this, and both also handle **project memory**
-(`memory.md` / `MEMORY.md` + `.claude/memory/`): existing → verify it matches code and
-propose fixes; new → seed it from intent.
+truth. Both sub-skills follow this. Setup does **not** create or sync a project-memory
+store (`MEMORY.md` / `.claude/memory/`) — it scopes to docs (`CLAUDE.md` / `AGENTS.md`)
+and the workflow wiring (hooks / MCP / plugins).
+
+**Invariant — never overwrite an existing `CLAUDE.md`.** Create it only when absent;
+if one exists, propose changes (`.claude/setup-analysis.md`) or a git-ignored
+`CLAUDE.local.md` instead of rewriting the committed file. Both sub-skills enforce this.
+
+Both paths also confirm the plugin's **hooks** (SessionStart context, PostToolUse format,
+Stop doc-sync), which activate automatically once `claude-boilerplate` is enabled — no copy
+step, and the format hook auto-detects the project's formatter. See the `## Hooks` section of
+`CLAUDE.md`.
+
+Both paths also confirm **MCP servers**: the keyless `context7` + `playwright` + `shadcn` load
+automatically from the plugin's `.mcp.json`; the optional auth servers (`figma` / `sentry` /
+`github`) are opt-in via `install.sh` or `claude mcp add`. See the `## MCP servers` section of
+`CLAUDE.md` / `README.md`.
+
+Both paths also offer the optional **companions**: `bash scripts/install-plugins.sh` adds the
+`superpowers` + `ponytail` plugins and the `rtk` token-optimizer CLI/hook (all optional — the
+skills work without them). See the `## Plugins & external tooling` section of `CLAUDE.md`.

@@ -1,6 +1,6 @@
 ---
 name: bootstrapping-new-project
-description: Use when setting up Claude Code for a new/greenfield project that has no source code yet — only a spec, PRD, plan, brainstorm, or prompt. Triggers on starting from a PRD/Jira/Linear ticket, a plan doc, or a blank repo, to create the initial CLAUDE.md/AGENTS.md and seed project memory.
+description: Use when setting up Claude Code for a new/greenfield project that has no source code yet — only a spec, PRD, plan, brainstorm, or prompt. Triggers on starting from a PRD/Jira/Linear ticket, a plan doc, or a blank repo, to create the initial CLAUDE.md/AGENTS.md.
 ---
 
 # Bootstrapping a New Project
@@ -30,15 +30,24 @@ Do these in order. Create a todo per step.
 3. **Ask for clarification BEFORE writing.** Any unclear or missing context — target
    stack, non-negotiable constraints, what "done" means — ask the user. Do not invent
    requirements.
-4. **Create the docs.** Author `CLAUDE.md` as the canonical file (see Setup quality
-   bar), then make `AGENTS.md` a symlink: `ln -s CLAUDE.md AGENTS.md`.
-5. **Seed the memory store.** There is no codebase yet, so memory comes from the
-   intent artifacts and the brainstorm — capture durable, non-obvious facts: key
-   decisions + rationale, hard constraints, goals/milestones, where the source of
-   truth (PRD/plan) lives, open questions. Use a `MEMORY.md` index + one fact per
-   file under `.claude/memory/`, or a single `memory.md` for a small project. Mark
-   assumptions as assumptions. Do not record anything as settled that the user hasn't
-   confirmed — this follows the initiation (brainstorm + ask first), same as the docs.
+4. **Create the docs — never overwrite an existing `CLAUDE.md`.** If `CLAUDE.md` is
+   **absent**, author it as the canonical file (see Setup quality bar), then make
+   `AGENTS.md` a symlink: `ln -s CLAUDE.md AGENTS.md`. If a `CLAUDE.md` already
+   **exists** (even in a "new" repo), do **not** overwrite it — propose additions to
+   `.claude/setup-analysis.md`, or write a git-ignored `CLAUDE.local.md`, for the user
+   to review. Same rule for `AGENTS.md`: never clobber an existing file.
+5. **Confirm hooks are active.** The plugin's hooks (SessionStart context, PostToolUse
+   format, Stop doc-sync) activate automatically once `claude-boilerplate` is enabled — no
+   copy step. The format hook auto-detects the project's formatter (prettier / ruff / gofmt /
+   …) at runtime, so style is enforced deterministically from the first commit. See `CLAUDE.md`
+   `## Hooks`.
+6. **Confirm MCP servers.** The keyless `context7` + `playwright` + `shadcn` load automatically
+   from the plugin's `.mcp.json`. Offer to add the **optional** auth servers the project will
+   need — `figma`, `sentry` once error tracking exists, `github` for PR/issue flow — via
+   `install.sh` or `claude mcp add -s <scope> …`. See `CLAUDE.md` / `README.md` `## MCP servers`.
+7. **Install the optional companions.** Run `bash scripts/install-plugins.sh` to add the
+   `superpowers` + `ponytail` plugins and the `rtk` token-optimizer CLI/hook (needs `jq`). They
+   are optional — the skills work without them. See `CLAUDE.md` `## Plugins & external tooling`.
 
 ## Setup quality bar (from official guidance)
 
@@ -59,6 +68,5 @@ Do these in order. Create a todo per step.
 
 ## Output
 
-New `CLAUDE.md` (canonical) + `AGENTS.md` symlink pointing to it, plus a seeded
-memory store (`MEMORY.md` + `.claude/memory/`, or `memory.md`) built from intent — not
-code, which doesn't exist yet.
+New `CLAUDE.md` (canonical) + `AGENTS.md` symlink pointing to it, built from intent —
+not code, which doesn't exist yet.

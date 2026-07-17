@@ -43,7 +43,9 @@ Reach for whatever the issue's evidence lives in — search deferred tools with 
 
 - **Observability / error tracking MCP** — Sentry, Datadog, Grafana, Honeycomb, New Relic,
   CloudWatch, OpenTelemetry. Pull the error, its frequency/first-seen/release, breadcrumbs, traces,
-  and metric dashboards.
+  and metric dashboards. The boilerplate can add an optional `sentry` MCP server
+  (`claude mcp add --transport http sentry https://mcp.sentry.dev/mcp`) to pull evidence
+  directly; see `CLAUDE.md` / `README.md` `## MCP servers`.
 - **Logs** — app/server logs, CI logs, `journalctl`, `docker logs`, `kubectl logs`.
 - **Tracing** — distributed traces by trace/request ID; APM spans across service boundaries.
 - **context7 MCP** (`resolve-library-id` → `query-docs`) — for the real semantics of a

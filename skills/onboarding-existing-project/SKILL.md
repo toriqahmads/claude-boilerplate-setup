@@ -1,6 +1,6 @@
 ---
 name: onboarding-existing-project
-description: Use when setting up Claude Code in an existing project that already has source code, to check whether CLAUDE.md/AGENTS.md, related docs, and project memory match the real codebase and fix drift. Triggers on stale docs, stale memory, missing CLAUDE.md, missing memory, doc/code mismatch, docs lagging recent commits, onboarding an established repo.
+description: Use when setting up Claude Code in an existing project that already has source code, to check whether CLAUDE.md/AGENTS.md and related docs match the real codebase and fix drift. Triggers on stale docs, missing CLAUDE.md, doc/code mismatch, docs lagging recent commits, onboarding an established repo.
 ---
 
 # Onboarding an Existing Project
@@ -21,11 +21,10 @@ https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-
 
 Do these in order. Create a todo per step.
 
-1. **Read existing docs + memory.** Look for and read: `CLAUDE.md`, `AGENTS.md`,
+1. **Read existing docs.** Look for and read: `CLAUDE.md`, `AGENTS.md`,
    `context.md`, `architecture.md`, `CONTRIBUTING.md`, `docs/` (often a folder),
-   progress/roadmap/CHANGELOG, `README`, and any **memory store** — `memory.md`,
-   `MEMORY.md` (index), a `.claude/memory/` directory, or per-file memory notes. Note
-   which exist. See "Memory sync" below for how memory is handled specifically.
+   progress/roadmap/CHANGELOG, `README`. Note which exist. (Setup does not create or
+   sync a project-memory store — it scopes to docs.)
 2. **Analyze the docs.** Extract what they *claim*: architecture, stack, conventions,
    build/test/lint commands, entrypoints, gotchas.
 3. **Explore the actual codebase + recent history.** Dispatch Explore subagents;
@@ -33,18 +32,16 @@ Do these in order. Create a todo per step.
    editing — explore read-only here. Cover: directory layout, manifests/deps,
    entrypoints, build & test config, dominant patterns. Also read the **latest
    commits** — `git log --oneline -30`, `git log -p -10`, and `git diff` for anything
-   uncommitted — to catch recent changes docs/memory may predate (renames, new
+   uncommitted — to catch recent changes the docs may predate (renames, new
    modules, dropped flags, changed commands).
 4. **Analyze the codebase.** Write down what is *actually* true: real structure,
    stack/versions, how to build/test/run, conventions in force. Treat **HEAD + recent
-   commits as the current truth** — where docs/memory describe an older state, the
+   commits as the current truth** — where docs describe an older state, the
    commits win.
-5. **Compare.** Diff step 1–2 (claimed — docs AND memory) against step 3–4 (actual
+5. **Compare.** Diff step 1–2 (claimed by docs) against step 3–4 (actual
    code + latest commits). List every point of drift: wrong/outdated claims, missing
-   commands, undocumented modules, dead references, **stale memory** (facts that no
-   longer match the code — renamed files, removed flags, changed architecture), and
-   anything **recent commits introduced or removed** that docs/memory don't reflect
-   yet.
+   commands, undocumented modules, dead references, and anything **recent commits
+   introduced or removed** that the docs don't reflect yet.
 6. **Judge sync.** Decide per doc: in sync, or drifted.
 7. **If drifted — ask how to deliver, then never silently rewrite.** When `CLAUDE.md`
    already exists and has drifted, **ask the user one question up front** and pick the
@@ -63,6 +60,17 @@ Do these in order. Create a todo per step.
    Add per-subdirectory `CLAUDE.md` files where a module has its own conventions.
 9. **Ask when unclear.** Any missing/ambiguous context (intended architecture, why a
    pattern exists, which command is canonical) → ask the user before guessing.
+10. **Confirm hooks are active.** The plugin's hooks (SessionStart context, PostToolUse
+    format, Stop doc-sync) activate automatically once `claude-boilerplate` is enabled —
+    no copy step. The format hook auto-detects the project's own formatter (prettier /
+    ruff / black / gofmt / …) at runtime, so nothing to tailor. See `CLAUDE.md` `## Hooks`.
+11. **Confirm MCP servers.** The keyless `context7` + `playwright` + `shadcn` load automatically
+    from the plugin's `.mcp.json`. Offer to add the **optional** auth servers this repo would
+    benefit from — `sentry` (its error tracker), `github`, `figma` — via `install.sh` or
+    `claude mcp add -s <scope> …`. See `CLAUDE.md` / `README.md` `## MCP servers`.
+12. **Offer to install the optional companions.** Run `bash scripts/install-plugins.sh` to add
+    the `superpowers` + `ponytail` plugins and the `rtk` token-optimizer CLI/hook (needs `jq`).
+    They are optional — the skills work without them. See `CLAUDE.md` `## Plugins & external tooling`.
 
 ## Delivery mode (drifted existing docs)
 
@@ -76,40 +84,12 @@ Only when `CLAUDE.md` already exists and drifted (step 7). Ask **before** writin
 - **(A) Local override** — `CLAUDE.local.md` is a Claude-read, git-ignored companion to
   `CLAUDE.md`; it layers on top without altering the committed file. Write root +
   per-subdir files, each holding only that scope's corrections/additions. Append
-  `CLAUDE.local.md` to `.gitignore` (add it if missing; don't duplicate the line). Memory
-  corrections ride along here too — put them in the relevant `CLAUDE.local.md` rather than
-  editing committed memory files.
+  `CLAUDE.local.md` to `.gitignore` (add it if missing; don't duplicate the line).
 - **(B) Proposal doc** — the `.claude/setup-analysis.md` report; touch nothing else until
   approved.
 
 Honor a standing user preference without re-asking. Missing docs (step 8) don't use this
 gate — there's nothing committed to protect, so create directly.
-
-## Memory sync
-
-Project **memory** = durable facts about the project that are NOT derivable from the
-code itself: decisions and their rationale, goals, constraints, non-obvious gotchas,
-external references. Common forms: `memory.md`, a `MEMORY.md` index + `.claude/memory/`
-files, or notes embedded in docs.
-
-Handle memory as part of the workflow above, with the same propose-don't-overwrite rule:
-
-- **Memory exists:** read it (step 1), compare each fact against the real codebase
-  (step 5). For every fact:
-  - Matches code → keep.
-  - Contradicts code (renamed symbol, dropped flag, changed structure) → flag as
-    **stale**; propose a corrected fact in `.claude/setup-analysis.md`.
-  - Still true but no longer indexed / orphaned → propose a fix.
-  Do NOT edit committed memory files directly — deliver per the chosen mode: mode A →
-  into the relevant `CLAUDE.local.md`; mode B → into `.claude/setup-analysis.md`, applied
-  on approval.
-- **Memory missing:** learn the codebase (steps 3–4) and **create** the memory store.
-  Capture only what the code can't tell you on its own (why-decisions, constraints,
-  gotchas) — not restated code structure. Use a `MEMORY.md` index + one fact per file
-  under `.claude/memory/`, or a single `memory.md` for a small project.
-
-**Do not** put in memory: things the repo already records (code structure, git
-history, what CLAUDE.md already states). Memory holds the non-obvious.
 
 ## Setup quality bar (from official guidance)
 
@@ -125,20 +105,18 @@ history, what CLAUDE.md already states). Memory holds the non-obvious.
 
 ## Common Mistakes
 
-- Editing an existing committed `CLAUDE.md` or memory file directly instead of a `CLAUDE.local.md` override (mode A) or `.claude/setup-analysis.md` proposal (mode B).
+- Editing an existing committed `CLAUDE.md` directly instead of a `CLAUDE.local.md` override (mode A) or `.claude/setup-analysis.md` proposal (mode B).
 - Skipping the delivery-mode question and picking A or B yourself when docs drifted.
 - Mode A but forgetting to add `CLAUDE.local.md` to `.gitignore` (leaks personal context into commits).
-- Trusting the docs/memory over the code — code is the source of truth for drift.
+- Trusting the docs over the code — code is the source of truth for drift.
 - Syncing to an old snapshot — ignoring the latest commits / uncommitted diff.
 - Dumping everything into CLAUDE.md instead of pointers + subdir layering.
-- Putting code-derivable facts into memory — memory is for the non-obvious only.
 - Skipping clarification and guessing intent.
 
 ## Output
 
-- Docs/memory existed & drifted → **user-chosen delivery**: mode A → `CLAUDE.local.md` at
-  root + per-subdir (added to `.gitignore`) carrying doc AND memory corrections; or mode B
-  → `.claude/setup-analysis.md` proposal covering doc AND memory fixes. Committed docs
+- Docs existed & drifted → **user-chosen delivery**: mode A → `CLAUDE.local.md` at
+  root + per-subdir (added to `.gitignore`) carrying doc corrections; or mode B
+  → `.claude/setup-analysis.md` proposal covering doc fixes. Committed docs
   untouched either way.
 - Docs missing → new `CLAUDE.md` + `AGENTS.md` symlink (+ optional subdir CLAUDE.md).
-- Memory missing → new memory store (`MEMORY.md` + `.claude/memory/`, or `memory.md`).

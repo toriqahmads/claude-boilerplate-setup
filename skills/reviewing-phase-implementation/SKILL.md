@@ -39,9 +39,11 @@ Which tool performs the agent review — use the first available:
    for security-sensitive changes.
 2. **`superpowers:requesting-code-review`** — dispatch a code-reviewer subagent via its
    `code-reviewer.md` template, given the diff + requirements.
-3. **Built-in fallback** — dispatch a `general-purpose` subagent as code reviewer with the rubric
-   below, scoped to the diff (never your session history). Use
-   [references/code-reviewer-prompt.md](references/code-reviewer-prompt.md).
+3. **Built-in `code-reviewer-agent`** — dispatch this repo's dedicated phase-5 code reviewer
+   (Agent tool), scoped to the diff (never your session history). It follows this skill's rubric
+   and [references/code-reviewer-prompt.md](references/code-reviewer-prompt.md), owns dimensions
+   1–6, and returns APPROVE/REVISE with Critical/Important/Minor findings. (If it's somehow
+   unavailable, fall back to a `general-purpose` subagent with the same reference prompt.)
 
 Detect superpowers as in the other phase skills (glob its skills dir + grep `enabledPlugins`).
 
@@ -78,10 +80,13 @@ Run security as a **dedicated pass**, not a bullet folded into the general revie
 distinct lens and its own reviewer. Use the first available:
 
 1. **Official Claude `security-review` skill** — invoke it on the phase diff.
-2. **A dedicated security subagent** — spawn a separate `general-purpose` (or a security-focused)
-   agent scoped to the diff, tasked only with vulnerability review: injection (SQL/command/XSS),
-   authn/authz gaps, secrets in code, unsafe deserialization, path traversal, SSRF, missing input
-   validation, insecure crypto, dependency risks, and anything in the project's threat model.
+2. **Built-in `security-reviewer-agent`** — dispatch this repo's dedicated phase-5 security
+   reviewer/pentester (Agent tool), scoped to the diff, tasked only with vulnerability review:
+   injection (SQL/command/XSS), authn/authz gaps and IDOR, secrets in code, unsafe
+   deserialization, path traversal, SSRF, missing input validation, insecure crypto, dependency/
+   config risks, and anything in the project's threat model. It follows
+   `finding-security-vulnerabilities`, may run read-only SAST/SCA/secret scanners, and rates
+   findings by severity. (If unavailable, fall back to a `general-purpose` security-focused agent.)
 
 Run it in parallel with the general agent review (Step 1); merge its findings into the same
 Critical/Important/Minor list. **Critical security findings block approval** — no autonomous
@@ -92,6 +97,25 @@ file uploads, or external input, or the pass flags something needing investigati
 audit via **`finding-security-vulnerabilities`**. Ask before running it (it's heavier); on yes, its
 assessment doc feeds remediation back through the planning workflow rather than being fixed inline.
 
+## Functional QA pass (its own agent)
+
+Run functional QA as a **dedicated pass too** — the code review reads the code; QA **runs the
+built app** and proves it behaves. Dispatch the **`qa-tester`** agent, scoped to the phase's
+surface, to black-box test the running implementation against the spec's success criteria and the
+plan's Testing Strategy:
+
+- **API** — status/schema/error semantics, auth and cross-user IDOR negatives, validation,
+  idempotency, verified against the OpenAPI/Swagger contract (`testing-apis`).
+- **UI / E2E** — the critical user journeys, every async state, accessibility, and
+  responsive/cross-browser behavior via Playwright (`testing-ui-and-e2e`).
+
+It writes a persisted, non-flaky regression suite (test files only — never app source) and returns
+a QA verdict: pass/fail per criterion + defects with reproduction. Run it in parallel with the
+general and security passes; merge its defects into the same Critical/Important/Minor list.
+**A failing in-scope success criterion blocks approval** — a green code review over a build that
+doesn't actually work is not done. Fix via the executor (QA reports bugs, it doesn't fix them),
+then re-run QA. Skip only when the phase ships no runnable surface (e.g. pure docs/config) — say so.
+
 ## The process
 
 ### Step 1: Agent review
@@ -100,8 +124,9 @@ assessment doc feeds remediation back through the planning workflow rather than 
    commit range, or `git merge-base <base> HEAD`..`HEAD`.
 2. **Run the chosen reviewer** on that diff across dimensions 1–6, handing it the design doc +
    this phase's plan + the project's `CLAUDE.md`/conventions as the requirements it verifies
-   against. **In parallel, run the security pass** (dimension 7) via its own skill/agent. Merge
-   all findings, graded **Critical / Important / Minor**.
+   against. **In parallel, run the security pass** (dimension 7) via its own skill/agent **and the
+   functional QA pass** (`qa-tester`) against the running build. Merge all findings, graded
+   **Critical / Important / Minor**.
 3. **Act on findings with technical rigor** (mirrors `superpowers:receiving-code-review` — use it
    if installed): read fully, verify each finding against the codebase before implementing, push
    back with technical reasoning when a finding is wrong, no performative agreement. Fix
