@@ -41,7 +41,9 @@ library API. No new UI dependency the plan didn't sanction without flagging it.
    management, sufficient contrast; ARIA only where semantics fall short.
 4. **State discipline.** Controlled inputs; state as local as possible; one source of
    truth; derive don't duplicate; clean up effects/subscriptions.
-5. **Data fetching.** Match the API contract; handle failure and retry; avoid waterfalls
+5. **Data fetching.** Match the **frozen API contract artifact**
+   (`docs/plan/contracts/<feature>.*`) — build against its contract-derived mock so the UI isn't
+   blocked on the backend (`coordinating-api-contract`); handle failure and retry; avoid waterfalls
    and refetch storms; cache/invalidate per the repo's data layer.
 6. **Design-system reuse.** Use existing components/tokens/styles; justify any new
    primitive. Responsive per the plan's breakpoints.
@@ -63,6 +65,9 @@ library API. No new UI dependency the plan didn't sanction without flagging it.
   boundaries, unhandled errors/rejections), real-user monitoring / core web vitals, key
   user-action events, and a trace header propagated to the backend. No PII in client
   telemetry.
+- **API contract** — when consuming a backend seam, follows `coordinating-api-contract`: build
+  as the **consumer** against the frozen contract artifact's mock (never blocked on the backend),
+  never assume a field it doesn't define, and run the change protocol if a shape must move.
 
 ## Guardrails
 
@@ -70,7 +75,9 @@ library API. No new UI dependency the plan didn't sanction without flagging it.
 - **States are in scope**, not afterthoughts. Loading/error/empty required.
 - **Accessibility is required**, not polish.
 - **UI checks aren't security** — gating is UX; the backend authorizes.
-- **Tests green before done;** show the run. **Match the repo.**
+- **Tests green + coverage ≥95% before done;** show the run and the coverage report — every changed
+  file ≥95% (statements/branches/functions/lines), global not regressed; a sub-95% file is not done.
+  **Match the repo.**
 
 ## When to stop / complete
 

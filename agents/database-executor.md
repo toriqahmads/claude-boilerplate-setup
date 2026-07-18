@@ -53,7 +53,9 @@ migration — add a new one.
 - **Safe with old code running** — assume rolling deploy; additive first, no big-bang break.
 - **Never mutate applied migrations** — add a new one.
 - **Destructive ops last, flagged, backup-gated** — never quietly drop data.
-- **Up+down verified before done** (shown); **match the repo**.
+- **Up+down verified before done** (shown); **match the repo**. Where a step ships model/logic code
+  with a coverage harness, the **≥95% coverage gate** (per changed file + global not regressed)
+  applies on top of the up/down verification.
 
 ## When to stop / complete
 

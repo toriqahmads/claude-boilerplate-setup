@@ -14,8 +14,10 @@ description: >
 # Designing an API
 
 Rubric for the API surface during spec design. Followed by the `api-designer-agent`
-subagent; usable inline. Output is a contract recommendation feeding the design doc —
-not handler code.
+subagent; usable inline. Output is a **standalone contract artifact** — the frozen,
+versioned source of truth the backend (provider) and frontend (consumer) both build
+against — not handler code. Feeds `coordinating-api-contract`, which governs how the two
+sides work off it (including in parallel).
 
 ## Goal
 
@@ -55,8 +57,12 @@ format, auth) so the new surface matches established conventions.
    at-least-once clients; retry behavior.
 9. **Rate limiting & abuse** — limits, quotas, and the response when exceeded, if the
    spec requires them.
-10. **Contract artifact** — express it as OpenAPI/GraphQL SDL/proto sketch so it's
-    unambiguous and reviewable.
+10. **Contract artifact** — author it as a **standalone file** at
+    `docs/plan/contracts/<feature>.<openapi.yaml|graphql|proto>` from
+    [references/api-contract-template.md](references/api-contract-template.md), complete
+    enough to generate a mock and validate a response, with a `version` + changelog header.
+    Frozen once approved — the single source of truth both sides build against
+    (`coordinating-api-contract`). Not a sketch buried in prose.
 
 ## Method
 
@@ -66,7 +72,9 @@ format, auth) so the new surface matches established conventions.
 3. Model resources/operations from the domain; define request/response shapes.
 4. Nail error semantics and auth per operation.
 5. Decide versioning, pagination, idempotency to the spec's needs.
-6. Express the contract in a schema sketch; ground types against the data model.
+6. Write the contract as the standalone artifact from the template; ground types against
+   the data model. This is the frozen source of truth — the frontend design and both sides'
+   plans consume it next.
 
 ## Guardrails
 
@@ -76,13 +84,16 @@ format, auth) so the new surface matches established conventions.
 - **Explicit errors & auth.** Every operation states its failure modes and who may call it.
 - **Don't break clients silently.** Any change to an existing endpoint states
   compatibility impact and a versioning/deprecation path.
-- **Recommendation, not code.** Stop at the contract + rationale; handlers are later phases.
+- **Contract artifact, not code.** Deliver the contract file + rationale; handlers are later phases.
+- **Freeze before parallel work.** The artifact is frozen at the design gate; changing it later
+  runs `coordinating-api-contract`'s change protocol (edit artifact → bump version → re-sync both sides).
 - **Ground claims** against the repo's existing API (`file:line`) and external specs.
 
 ## When to stop / complete
 
-Stop when the contract is defined (operations, shapes, errors, auth) as a reviewable
-schema sketch consistent with the repo — or when a consumer need or auth policy only
+Stop when the contract is defined (operations, shapes, errors, auth) and written as the
+standalone artifact at `docs/plan/contracts/<feature>.*`, consistent with the repo and
+complete enough to mock/validate against — or when a consumer need or auth policy only
 the user has blocks it (present it). Do not implement handlers or design the DB/UI;
 hand those on.
 
@@ -94,6 +105,7 @@ hand those on.
 - **Errors** — the error envelope + status mapping + validation errors.
 - **Auth** — scheme + per-operation authorization.
 - **Versioning, pagination, idempotency, limits** — as the spec requires.
-- **Contract sketch** — OpenAPI / GraphQL SDL / proto excerpt.
+- **Contract artifact** — the standalone OpenAPI / GraphQL SDL / proto file written to
+  `docs/plan/contracts/<feature>.*` (versioned, frozen), plus its path.
 - **Trade-offs & open questions** — what the user must confirm; compatibility impacts.
 - **Sources** — repo `file:line` and external references used.

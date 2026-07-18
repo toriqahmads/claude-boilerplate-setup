@@ -55,6 +55,9 @@ keep all three layers.
 - **Unit** — <behaviors covered>
 - **Integration** — <boundaries covered>
 - **E2E** — <user-visible flows proving the acceptance criteria>
+- **Coverage bar** — unit + integration coverage **≥95%** (statements/branches/functions/lines),
+  **per-file hard** for changed files and **global ratcheted** upward, never regressing; a success
+  criterion, not a nicety. E2E is a separate functional gate, not counted toward the %.
 
 ---
 

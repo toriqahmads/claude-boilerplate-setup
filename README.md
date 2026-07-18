@@ -224,7 +224,7 @@ claude plugin uninstall claude-boilerplate          # remove (add --scope user|l
 
 ## Function reference
 
-### Skills (27)
+### Skills (28)
 
 | Skill | Purpose |
 |-------|---------|
@@ -253,6 +253,7 @@ claude plugin uninstall claude-boilerplate          # remove (add --scope user|l
 | `implementing-auth-and-authorization` | Cross-cutting: authn + RBAC/authz + secure coding. |
 | `implementing-observability` | Cross-cutting: logging, tracing, metrics, alerting. |
 | `implementing-documentation` | Cross-cutting: API docs (OpenAPI) + README/CHANGELOG/ADR. |
+| `coordinating-api-contract` | Cross-cutting: frozen API-contract spine → parallel backend (provider) + frontend (consumer/mock), change protocol, conformance gates; resumes across sessions via a committed status ledger + the session-start hook. |
 | `testing-apis` | QA craft: black-box API/contract testing. |
 | `testing-ui-and-e2e` | QA craft: browser UI + E2E via Playwright. |
 
@@ -283,13 +284,19 @@ claude plugin uninstall claude-boilerplate          # remove (add --scope user|l
 
 | Hook | Event | What it does |
 |------|-------|--------------|
-| `session-start-context.sh` | `SessionStart` | Prints branch, uncommitted count, in-progress phase plans. |
+| `session-start-context.sh` | `SessionStart` | Prints branch, uncommitted count, in-progress phase plans, and API-contract state (version, `⚠ NEEDS-RESYNC`, worktrees) for parallel tracks. |
 | `post-tooluse-format.sh` | `PostToolUse` (`Write\|Edit\|MultiEdit`) | Formats just the edited file with the project's own formatter. |
 | `stop-doc-sync.sh` | `Stop` | Reminds you to sync `CLAUDE.md` if structure changed but the doc didn't. |
 
 Every hook is read-only (except formatting the edited file), needs no runtime deps, and
 always exits 0 — it can never break a session and silently no-ops when a project has no
 formatter.
+
+---
+
+## Changelog
+
+Release history in [CHANGELOG.md](CHANGELOG.md) — [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, [SemVer](https://semver.org/).
 
 ---
 

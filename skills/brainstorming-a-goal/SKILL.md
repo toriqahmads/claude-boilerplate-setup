@@ -79,7 +79,7 @@ to *how we prove it works*:
 |-------|---------|-------------------|--------------------------------|
 | **Functional Specification** | User stories, functional requirements, GIVEN/WHEN/THEN acceptance criteria, out-of-scope | *What should the system do, and for whom?* | purpose, components (behavior) |
 | **Technical Design** | Endpoints, request/response contracts, flow diagrams, data model changes, error handling | *What is the system's external contract?* | architecture, data flow, error handling |
-| **Testing Strategy** | Unit, integration, and E2E tiers described by behavior | *What proves the spec is satisfied?* | testing |
+| **Testing Strategy** | Unit, integration, and E2E tiers described by behavior, plus the **≥95% coverage bar** (per-file hard, global ratcheted) as a success criterion | *What proves the spec is satisfied?* | testing |
 
 ## "Too simple / already brainstormed"
 

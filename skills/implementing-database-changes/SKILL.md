@@ -64,7 +64,9 @@ for the tool's exact API. Never edit an already-applied migration — add a new 
 - **Destructive ops are last, flagged, and backup-gated.** Surface them for human
   confirmation; do not quietly drop data.
 - **Plan is the contract;** report blockers, don't improvise schema.
-- **Tests/verification green before done;** show the up+down run.
+- **Tests/verification green before done;** show the up+down run. Where a step ships model/logic
+  code with a coverage harness, the **≥95% coverage gate** applies to it (per changed file + global
+  not regressed) on top of the up/down migration verification.
 
 ## When to stop / complete
 

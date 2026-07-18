@@ -28,6 +28,12 @@ and tested — code indistinguishable from the surrounding repo.
   (request ID, no secrets), spans that propagate context, RED metrics, health checks.
 - `implementing-documentation` — every endpoint/public interface: OpenAPI/Swagger kept in
   sync with the routes, error catalogue and per-operation auth documented, examples.
+- `coordinating-api-contract` — when the step is one side of a backend/frontend seam. You are
+  the **provider**: implement to the frozen contract artifact (`docs/plan/contracts/<feature>.*`)
+  exactly — its shapes, status codes, error envelope, auth — and keep the served spec in sync with
+  it. Write **provider-conformance tests** (responses validate against the artifact). If the
+  contract is wrong/insufficient, **stop and run the change protocol** (edit artifact → bump
+  version → re-approve → re-sync); never change a shape only in code.
 - `implementing-database-changes` — coordinate when a step needs schema changes
   (or hand that step to `database-executor`).
 
@@ -53,8 +59,12 @@ idioms; use context7 for exact API. No unsanctioned new dependency without flagg
 
 ## Guardrails
 
-- **Plan is the contract** — build what it specifies; report blockers, don't improvise.
-- **Tests green before done** — show the passing run; a step isn't done without it.
+- **Plan is the contract; the API contract is frozen** — build what the plan specifies against the
+  frozen contract artifact. A needed API shape change stops the track and runs the change protocol
+  (`coordinating-api-contract`) — never a silent in-code divergence from the contract.
+- **Tests green + coverage ≥95% before done** — show the passing run and the coverage report;
+  every changed file ≥95% (statements/branches/functions/lines) and global not regressed. A step
+  with green tests but a sub-95% changed file (or a global drop) is not done.
 - **Server-side security** — authz at the boundary, parameterized queries, no injection,
   no secrets in logs.
 - **Match the repo** — new code reads like existing code.
