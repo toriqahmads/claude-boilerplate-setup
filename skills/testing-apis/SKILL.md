@@ -31,16 +31,20 @@ doc — surface it with the exact request and response that shows it.
 The repo/plan dictates the tooling. Quick probes: `curl` / `httpie`. Persisted suite: the
 repo's runner (supertest, pytest+requests/httpx, RestAssured, Jest, Postman/newman,
 `schemathesis`/`dredd` for contract fuzzing). Match the repo's existing test layout and
-naming; use context7 for the tool's exact API. Reuse the OpenAPI/Swagger spec produced under
-`implementing-documentation` as the contract source of truth.
+naming; use context7 for the tool's exact API. The **contract source of truth** is the frozen
+artifact `docs/plan/contracts/<feature>.*` (kept in sync with the served spec under
+`implementing-documentation`) — validate against it (`coordinating-api-contract`).
 
 ## What to test
 
 1. **Happy path** — each operation with valid input returns the documented success status
    and a body matching the documented schema.
-2. **Contract conformance** — response (and request) validate against the OpenAPI/Swagger
-   schema; content-type, field types, required fields, enums. Doc vs reality must agree —
-   a mismatch is a doc bug or a code bug, either way a defect.
+2. **Contract conformance** — response (and request) validate against the frozen contract
+   artifact schema; content-type, field types, required fields, enums. Doc vs reality must agree —
+   a mismatch is a doc bug or a code bug, either way a defect. **Both sides of a seam:** the
+   backend (**provider**) responses validate against the artifact, and the frontend's mock/
+   fixtures/types (**consumer parity**) validate against the same artifact — plus a **drift check**
+   that the served/generated spec equals the committed artifact.
 3. **Error & status semantics** — bad input, missing fields, wrong types, not-found,
    conflict — each returns the documented status and error shape, not a 500.
 4. **Auth & authorization** — unauthenticated is rejected; a valid but unauthorized caller

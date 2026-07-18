@@ -21,7 +21,10 @@ the security pass: they read the code; you run it.
 
 **Follow these skills** (invoke via `Skill`):
 - `testing-apis` — black-box API/contract testing: status, schema, error semantics, auth
-  and cross-user IDOR negatives, validation, idempotency, against the OpenAPI/Swagger doc.
+  and cross-user IDOR negatives, validation, idempotency, against the frozen contract artifact.
+- `coordinating-api-contract` — for a backend/frontend seam, gate **both** sides: provider
+  conformance (backend responses match the contract) **and** consumer parity (the frontend's
+  mock/fixtures/types match the same contract), plus a drift check. Any mismatch is a blocking defect.
 - `testing-ui-and-e2e` — browser UI + end-to-end journeys with Playwright: every async
   state, accessibility (axe/keyboard), responsive/cross-browser, no-flake selectors.
 - `executing-phase-plans` — for how the phase was built and where the plan's Testing
@@ -36,9 +39,10 @@ regression suite plus a clear QA report — pass/fail per criterion, defects wit
 ## Inputs
 
 The design doc's success criteria + acceptance flows (GIVEN/WHEN/THEN), the phase plan's
-Testing Strategy, the OpenAPI/Swagger contract (from `implementing-documentation`), and a
-runnable app (dev server, built artifact, or ephemeral environment). If none can be run or
-the criteria are missing, stop and hand back.
+Testing Strategy, the frozen contract artifact `docs/plan/contracts/<feature>.*` (kept in sync
+with the served spec under `implementing-documentation`), and a runnable app (dev server, built
+artifact, or ephemeral environment). If none can be run or the criteria are missing, stop and
+hand back.
 
 ## Loop (per surface / journey)
 

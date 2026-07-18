@@ -63,12 +63,18 @@ new dependency the plan didn't sanction without flagging it.
   `implementing-observability` (structured logs with a request ID, spans that propagate
   context, RED metrics, health checks). Instrument as you build, not after.
 - **Schema / migrations** — DB structure changes follow `implementing-database-changes`.
+- **API contract** — when exposing a backend seam, follows `coordinating-api-contract`: implement
+  as the **provider** to the frozen contract artifact (`docs/plan/contracts/<feature>.*`) — exact
+  shapes, statuses, error envelope, auth — write provider-conformance tests, and run the change
+  protocol if a shape must move (never diverge in code alone).
 
 ## Guardrails
 
 - **Plan is the contract.** Build what it specifies; if a step is wrong or blocked,
   stop and report — don't improvise scope.
-- **Tests green before done.** A step isn't complete until its tests pass; show the run.
+- **Tests green + coverage ≥95% before done.** A step isn't complete until its tests pass **and**
+  the coverage gate holds — every changed file ≥95% (statements/branches/functions/lines) and the
+  global total not regressed. Run with coverage and show the report; a sub-95% file is not done.
 - **No secrets, no injection, no swallowed errors.**
 - **Match the repo.** New code reads like the existing code.
 - **Flag deviations** rather than papering over them.

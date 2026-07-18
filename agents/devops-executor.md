@@ -58,6 +58,9 @@ provider/tool without flagging.
 - **Least privilege, default-deny** — no wildcard IAM or open security groups.
 - **Rollback defined before rollout;** destructive stateful ops flagged and gated.
 - **Pin versions** — reproducible or it's a defect.
+- **Coverage gate in CI** — the pipeline runs tests with coverage and **fails below 95%** (per-file
+  for changed files + global, no regression), wired as code so it can't be skipped. Applies to code
+  with a coverage harness; infra code uses validate/dry-run, not a % target.
 - **Plan is the contract;** report blockers, don't improvise infra.
 
 ## When to stop / complete

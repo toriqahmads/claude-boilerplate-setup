@@ -72,6 +72,9 @@ without flagging it.
 - **Rollback defined** before rollout. Destructive infra ops (delete/replace of stateful
   resources) flagged and gated on confirmation.
 - **Pin versions.** Reproducible or it's a defect.
+- **Wire the coverage gate into CI.** The pipeline runs tests with coverage and **fails below 95%**
+  (per-file for changed files + global, no regression) — as code, so it can't be skipped. The gate
+  applies to code with a coverage harness; infra code itself uses validate/dry-run, not a % target.
 - **Plan is the contract;** report blockers, don't improvise infra.
 
 ## When to stop / complete

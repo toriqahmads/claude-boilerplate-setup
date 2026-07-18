@@ -11,6 +11,9 @@ Get timestamps from `date -u +%Y-%m-%dT%H:%M:%SZ` — never fabricate them.
 
 **Plan:** <link to plan.md>
 **Started:** <timestamp>   **Mode:** subagent-driven | inline   **Worktree:** <path or "in place">
+<!-- Parallel contract track only (omit otherwise) — see coordinating-api-contract: -->
+**Contract:** <docs/plan/contracts/<feature>.* @ <synced-version> | n/a>
+**Sibling track:** <the other track's worktree/branch | none>
 
 ## Tasks
 
@@ -30,6 +33,7 @@ Get timestamps from `date -u +%Y-%m-%dT%H:%M:%SZ` — never fabricate them.
 - Status: <done | in progress>
 - Finish: merge | PR #<n> | keep | discard
 - Branch/PR: <ref>
+- Conformance (contract track only): provider <PASS|FAIL|PENDING> · consumer-parity <…> · drift <…>
 - Reviewed & approved: <timestamp> (see phase 5)   — filled by reviewing-phase-implementation
 - Follow-ups: <deferred items / accepted Minors>
 ```

@@ -46,4 +46,38 @@ EOF
   fi
 fi
 
+# API-contract state — so parallel backend/frontend tracks resume across sessions with the
+# right footing (see the coordinating-api-contract skill). Each probe is guarded and best-effort.
+if [ -d docs/plan/contracts ]; then
+  # Frozen contract artifacts + their current version (from the status ledger when present).
+  while IFS= read -r s; do
+    [ -z "$s" ] && continue
+    art="$(grep -m1 -E '^\*\*Artifact:\*\*' "$s" 2>/dev/null | sed 's/^\*\*Artifact:\*\* *//')"
+    ver="$(grep -m1 -E '^\*\*Current version:\*\*' "$s" 2>/dev/null | sed -E 's/^\*\*Current version:\*\* *//; s/ .*//')"
+    [ -z "$art" ] && art="$s"
+    echo "- Contract: ${art}${ver:+ @ ${ver}}"
+  done <<EOF
+$(find docs/plan/contracts -maxdepth 1 -name '*.status.md' 2>/dev/null)
+EOF
+
+  # Stale-track warnings the contract-change protocol wrote into the ledger — surface verbatim.
+  while IFS= read -r w; do
+    [ -z "$w" ] && continue
+    # Trim leading markdown list punctuation for a clean line.
+    echo "- $(printf '%s' "$w" | sed -E 's/^[[:space:]]*-[[:space:]]*//')"
+  done <<EOF
+$(grep -rhE 'NEEDS-RESYNC' docs/plan/contracts/ 2>/dev/null)
+EOF
+fi
+
+# Multiple worktrees usually means parallel contract tracks are live — list them.
+wt="$(git worktree list 2>/dev/null)"
+if [ -n "${wt:-}" ] && [ "$(printf '%s\n' "$wt" | wc -l | tr -d ' ')" -gt 1 ]; then
+  echo "- Worktrees:"
+  printf '%s\n' "$wt" | while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    echo "  - ${line}"
+  done
+fi
+
 exit 0

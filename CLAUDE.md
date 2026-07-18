@@ -98,8 +98,10 @@ On-ramps (investigation → diagnosis/assessment doc → planning workflow):
   `security-review` skill when available.
 
 Artifacts live under `docs/plan/` (`specs/`, `breakdown/`, `phases/<N-slug>/plan.md`, a committed
-`phases/<N-slug>/progress.md` execution log written during phase 4, `diagnostics/` diagnosis docs,
-and `security/` assessment docs) — same layout whether or not `superpowers` is present.
+`phases/<N-slug>/progress.md` execution log written during phase 4, `contracts/<feature>.*` frozen
+API-contract artifacts + `contracts/<feature>.status.md` cross-track resume ledgers,
+`diagnostics/` diagnosis docs, and `security/` assessment docs) — same layout whether or not
+`superpowers` is present.
 
 Each planning/on-ramp skill carries a `references/` folder with fill-in **templates** for its
 output doc (design, breakdown, plan, progress, diagnosis, assessment) and **reviewer/agent prompts**
@@ -189,14 +191,39 @@ locale-aware formatting, RTL, fallback); `implementing-auth-and-authorization` (
 hashing, safe sessions/tokens, server-side deny-by-default enforcement, RBAC /
 fine-grained authz, per-resource checks against IDOR, negative authz tests); and
 `implementing-observability` (structured logging, distributed tracing, RED/USE metrics,
-health checks, monitoring, SLO-based alerting); and `implementing-documentation` (API docs
-via OpenAPI/Swagger kept in sync with the code, plus README/CHANGELOG/ADR/runbook).
+health checks, monitoring, SLO-based alerting); `implementing-documentation` (API docs
+via OpenAPI/Swagger kept in sync with the code, plus README/CHANGELOG/ADR/runbook); and
+`coordinating-api-contract` (the backend↔frontend contract discipline that lets the two
+executors work in parallel — a standalone, frozen, versioned contract artifact under
+`docs/plan/contracts/`, backend building to it as **provider** and frontend against a
+contract-derived **mock** as **consumer**, a strict change protocol, and provider/consumer
+conformance gates; the two tracks resume **across sessions** via a committed status ledger
+(`docs/plan/contracts/<feature>.status.md`) + per-track `progress.md` sync fields, surfaced at
+session start by `session-start-context.sh`).
 Observability is also a first-class **design** concern (`designing-architecture`) and
 **planning** concern (`plan-writer-agent`), and is checked at the spec/plan gate
 (`reviewing-specs-and-plans`), so it's built in — not bolted on after an incident.
 Documentation is likewise a **planning** concern (`plan-writer-agent`), checked at the
 spec/plan gate (`reviewing-specs-and-plans`), continuing the `designing-an-api` contract
-sketch into a living, served OpenAPI/Swagger spec at execution.
+artifact into a living, served OpenAPI/Swagger spec at execution.
+
+The **API contract is the spine that runs through every phase** so backend and frontend meet
+in the middle without drift: `designing-an-api` authors the standalone artifact
+(`docs/plan/contracts/<feature>.*`, from its `references/api-contract-template.md`), frozen at
+the design gate; `breaking-down-into-phases` may split a **backend (provider) track** and a
+**frontend (consumer) track** around it (the frozen contract is the clean interface that makes
+them independently buildable — the one sanctioned layer-split); `planning-each-phase` has both
+plans consume it (frontend plans the mock, both plan conformance tests);
+`executing-phase-plans` runs the two tracks **concurrently in separate worktrees** (the one
+sanctioned exception to one-implementer-at-a-time, which is otherwise per-worktree), with a
+contract-change protocol if a shape must move; and `reviewing-phase-implementation` /
+`qa-tester` / `testing-apis` gate **provider conformance + consumer parity + drift** on both
+sides. `coordinating-api-contract` is the cross-cutting home of this discipline. Because a
+parallel build spans **many sessions**, the state that must survive lives on disk, committed: the
+**status ledger** (`docs/plan/contracts/<feature>.status.md`) records each track's worktree,
+branch, synced contract version, and conformance, and a contract bump writes a `⚠ NEEDS-RESYNC`
+marker for any track left behind — surfaced at session start by `session-start-context.sh`, so a
+later session detects a stale paused track and re-syncs it before continuing.
 
 Phase-5 review gate — three parallel passes that close the built code back onto phase 1 (spec)
 and phase 3 (plan). Code review and security are read-only (return a verdict); QA is
@@ -234,8 +261,11 @@ user's projects for a `--scope user` install, or only the one project for `--sco
 No per-developer copy step.
 
 - `session-start-context.sh` (**SessionStart**) — dynamic context load. Prints the branch,
-  uncommitted-change count, and any in-progress `docs/plan/**/progress.md` so each session
-  resumes with the right footing.
+  uncommitted-change count, any in-progress `docs/plan/**/progress.md`, plus API-contract state
+  for parallel tracks — the frozen contract + current version, any `⚠ NEEDS-RESYNC` marker a
+  contract bump left for a stale track, and the git worktrees when more than one — so each session
+  (even a fresh one) resumes with the right footing. It only surfaces the marker the
+  `coordinating-api-contract` change protocol wrote; the version logic stays in the skill.
 - `post-tooluse-format.sh` (**PostToolUse** `Write|Edit|MultiEdit`) — deterministic
   formatting. Runs the project's own formatter (prettier / ruff / black / gofmt / rustfmt /
   rubocop / shfmt — detected, never installed) on just the edited file.
@@ -310,6 +340,19 @@ wire this into both onboarding paths.
   change (AGENTS.md follows via the symlink).
 - **Document reality**, not plans. Describe what exists.
 - Reusable expertise → Skills, not CLAUDE.md.
+- **Changelog.** Record notable changes in `CHANGELOG.md` (Keep a Changelog + SemVer) under
+  `[Unreleased]`; cutting a release moves those entries to a version heading and bumps
+  `.claude-plugin/plugin.json`.
+- **Test coverage ≥95%.** Configure the target project's coverage tool (jest/vitest
+  `coverageThreshold`, `pytest --cov-fail-under=95`, `go test -cover` gate, nyc, JaCoCo, SimpleCov —
+  detected, not imposed) so **statements, branches, functions, and lines each fail below 95%**.
+  **Per-file: hard ≥95%** for every file a change creates/touches. **Global: ratchet** — set at
+  current coverage, only ever raised toward 95, never regressed; pre-existing legacy gaps are
+  backlog with user sign-off (per "document reality"). Unit + integration coverage; E2E/black-box
+  is a separate functional gate, not counted. Enforced across the lifecycle — spec Testing Strategy,
+  plan step, execution done-gate, CI (devops), and the phase-5 review (a sub-95% changed file or a
+  global regression blocks approval). This governs projects the workflow builds; the plugin repo
+  itself ships docs/skills, no app code to cover.
 
 ## Working agreement (for any agent)
 
@@ -319,8 +362,10 @@ wire this into both onboarding paths.
 
 ## Commands
 
-None yet — no build/test/lint tooling is set up. This section grows as tooling is
-added, layered per-subdirectory to avoid timeouts.
+None yet — no build/test/lint tooling is set up (this plugin ships docs/skills, no app code).
+This section grows as tooling is added, layered per-subdirectory to avoid timeouts. Projects the
+workflow builds expose a **coverage command** whose gate fails below 95% (see the coverage
+convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-under=95`.
 
 ## Structure
 
@@ -330,6 +375,7 @@ added, layered per-subdirectory to avoid timeouts.
 │   ├── plugin.json                           # plugin manifest (name: claude-boilerplate)
 │   └── marketplace.json                      # self-hosted marketplace (claude-boilerplate-market, source "./")
 ├── README.md                                 # user-facing doc: install / setup / use / function reference
+├── CHANGELOG.md                              # release history (Keep a Changelog + SemVer)
 ├── LICENSE                                   # MIT
 ├── CLAUDE.md                                 # canonical developer doc (this file)
 ├── AGENTS.md                                 # symlink → CLAUDE.md
@@ -342,7 +388,7 @@ added, layered per-subdirectory to avoid timeouts.
 │   └── setup.md                              # /claude-boilerplate:setup → runs the setup router skill
 ├── hooks/                                    # plugin-native hooks (wired in hooks.json, active when enabled)
 │   ├── hooks.json                            # hook wiring via ${CLAUDE_PLUGIN_ROOT}
-│   ├── session-start-context.sh              # SessionStart: load branch/in-progress-plan context
+│   ├── session-start-context.sh              # SessionStart: load branch/in-progress-plan + API-contract state (version, ⚠ NEEDS-RESYNC, worktrees)
 │   ├── post-tooluse-format.sh                # PostToolUse: format the edited file with the project's formatter
 │   └── stop-doc-sync.sh                      # Stop: remind to sync CLAUDE.md if structure changed
 ├── agents/                                   # subagents (one .md each, frontmatter + prompt)
@@ -380,7 +426,7 @@ added, layered per-subdirectory to avoid timeouts.
     ├── reviewing-specs-and-plans/        # phase-1 gate: adversarial spec/plan review rubric (design-reviewer-agent follows it)
     ├── designing-architecture/           # spec design rubric: system structure (architecture-agent follows it)
     ├── designing-a-database/             # spec design rubric: data model/schema (database-designer-agent follows it)
-    ├── designing-an-api/                 # spec design rubric: API contract (api-designer-agent follows it)
+    ├── designing-an-api/                 # spec design rubric: API contract → standalone artifact (references/: api-contract-template; api-designer-agent follows it)
     ├── designing-a-frontend/             # spec design rubric: UI/component/state (frontend-designer-agent follows it)
     ├── implementing-backend/             # exec craft: server-side code (backend-executor follows it)
     ├── implementing-frontend/            # exec craft: UI code + async states + a11y (frontend-executor follows it)
@@ -390,6 +436,7 @@ added, layered per-subdirectory to avoid timeouts.
     ├── implementing-auth-and-authorization/ # exec craft (cross-cutting): authn + RBAC/fine-grained authz + secure coding
     ├── implementing-observability/      # exec craft (cross-cutting): logging, tracing, metrics, monitoring, alerting
     ├── implementing-documentation/      # exec craft (cross-cutting): API docs (OpenAPI/Swagger) + README/CHANGELOG/ADR/runbook
+    ├── coordinating-api-contract/       # exec craft (cross-cutting): frozen contract spine → parallel backend(provider)+frontend(consumer/mock), change protocol, conformance gates, cross-session resume (references/: contract-status-template)
     ├── testing-apis/                     # phase-5 QA craft: black-box API/contract testing (qa-tester follows it)
     └── testing-ui-and-e2e/               # phase-5 QA craft: browser UI + E2E via Playwright (qa-tester follows it)
 ```

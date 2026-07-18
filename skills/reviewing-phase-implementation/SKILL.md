@@ -56,6 +56,10 @@ Review against the design doc (`docs/plan/specs/…`) **and** the phase plan
    per the contract.
    - **Correctness** — logic, edge cases, error handling per the contract.
    - **Tests** — unit / integration / **E2E** present and passing at the tiers the Testing Strategy names.
+   - **Coverage** — the ≥95% gate holds: every changed file ≥95% (statements/branches/functions/
+     lines) and the global total not regressed. A **changed file under 95%** or a **global
+     regression** is a **blocking** finding — Important, or **Critical** if it drops the global
+     bar. Verify from the coverage report, not by eye.
 2. **Code quality** — readable, focused units; no dead code, no duplication, no needless complexity.
    - **Quality** — DRY, YAGNI, KISS, SOLID; clean interfaces matching the breakdown.
 3. **Criteria from brainstorming + planning** — the built code satisfies what the spec and plan asked for.
@@ -105,7 +109,13 @@ surface, to black-box test the running implementation against the spec's success
 plan's Testing Strategy:
 
 - **API** — status/schema/error semantics, auth and cross-user IDOR negatives, validation,
-  idempotency, verified against the OpenAPI/Swagger contract (`testing-apis`).
+  idempotency, verified against the frozen contract artifact `docs/plan/contracts/<feature>.*`
+  (`testing-apis`).
+- **Contract conformance (both sides)** — for a backend/frontend seam, gate **provider
+  conformance** (backend responses validate against the contract) **and** **consumer parity**
+  (the frontend's mock/fixtures/types validate against the same contract), plus a **drift check**
+  (served/generated spec == committed artifact). Any mismatch — doc vs code, mock vs provider — is
+  a **blocking** finding (`coordinating-api-contract`).
 - **UI / E2E** — the critical user journeys, every async state, accessibility, and
   responsive/cross-browser behavior via Playwright (`testing-ui-and-e2e`).
 

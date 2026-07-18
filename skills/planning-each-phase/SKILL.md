@@ -41,6 +41,13 @@ Do these in order. Create a todo per step.
    fallback, saving to `docs/plan/phases/<N-slug>/plan.md`.
 3. **Carry cross-phase interfaces.** Each phase's plan must reference the interfaces **produced
    by earlier phases** (from the breakdown), with exact names/types, so the plans compose.
+   **For a backend/frontend contract-seam split** (see `breaking-down-into-phases` and
+   `coordinating-api-contract`): both plans list the frozen contract artifact
+   (`docs/plan/contracts/<feature>.*`) in their *Consumes from earlier phases* block. The
+   **frontend plan** includes a task to stand up the contract-derived mock (Prism / OpenAPI mock /
+   generated MSW handlers / types) and consumer-parity tests; the **backend plan** includes
+   provider-conformance tests (responses validate against the artifact). Neither plan may introduce
+   a request/response shape absent from the contract — that's a change protocol, not a plan step.
 4. **Execution handoff.** After each plan, offer execution options (see below).
 
 ## Inline fallback (per phase)
@@ -119,6 +126,12 @@ after the self-review.
   code: **unit tests** per task (the TDD steps above), **integration tests** where phases/units
   meet, and an **end-to-end test** proving the phase's user-visible behavior works through the
   real flow. The phase is not done until its E2E test passes.
+- **Configure the coverage gate** as a concrete step: set the repo's coverage tool
+  (jest/vitest `coverageThreshold`, `pytest --cov-fail-under=95`, `go test -cover` gate, nyc,
+  JaCoCo, SimpleCov — detected, not imposed) so statements/branches/functions/lines each **fail
+  below 95%**, **per-file for changed files** and **global** (global set at current coverage and
+  ratcheted up, never regressing on a legacy repo). Every phase's done-criteria includes "coverage
+  gate green". E2E/black-box is a separate functional gate, not counted toward the %.
 - **No placeholders.** These are plan failures — never write them: "TBD" / "TODO" / "implement
   later"; "add appropriate error handling" / "add validation" / "handle edge cases"; "write tests
   for the above" (without the test code); "similar to Task N" (repeat the code — tasks may be read
@@ -142,7 +155,8 @@ re-review.
 1. **Spec coverage** — skim every requirement in this phase's scope (from the breakdown/design).
    Can you point to a task that implements it? List and close any gaps — add the missing task.
 2. **Test coverage** — does every requirement have a test at the right tier (unit / integration /
-   E2E)? Is the phase's user-visible behavior covered end-to-end?
+   E2E)? Is the phase's user-visible behavior covered end-to-end? Does the plan set the **≥95%
+   coverage gate** (per-file for changed files + global ratchet) and include a step to configure it?
 3. **Placeholder scan** — search for the "No placeholders" red flags above. Fix them.
 4. **Type consistency** — do types, method signatures, and property names used in later tasks
    match what earlier tasks (and consumed earlier-phase interfaces) defined? A `clearLayers()` in

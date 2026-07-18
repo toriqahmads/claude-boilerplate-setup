@@ -72,6 +72,18 @@ the spec/breakdown is missing or ambiguous, stop and hand back — do not invent
   a concrete step to produce/update its OpenAPI/Swagger (or SDL/proto) doc and any
   README/CHANGELOG/runbook entry, with verification (doc served, drift check passes) — don't
   leave docs implicit (see `implementing-documentation`).
+- **Plan to the frozen contract.** When the plan is one side of a backend/frontend seam, cite the
+  frozen contract artifact (`docs/plan/contracts/<feature>.*`) in *Consumes from earlier phases*
+  and build every request/response step to its exact shapes — never a shape absent from it. Include
+  the conformance step: **provider** plans verify responses against the artifact; **frontend** plans
+  stand up the contract-derived mock and verify consumer parity. A needed shape change is an open
+  question routed through the contract-change protocol, not a plan step (see
+  `coordinating-api-contract`).
+- **Plan the coverage gate in.** Include a concrete step to configure the repo's coverage tool
+  (jest/vitest `coverageThreshold` / `pytest --cov-fail-under=95` / `go test -cover` / nyc / JaCoCo
+  / SimpleCov) so statements/branches/functions/lines each fail below **95%** — **per-file** for
+  changed files (hard) and **global** (ratcheted up, never regressed). Each phase's done-criteria
+  includes "coverage gate green". Coverage is unit + integration; E2E is a separate gate.
 - **Traceable both ways.** Every criterion → step; every step → a spec/breakdown justification.
 - **Executable here.** Ground every referenced file/API/version; flag the unconfirmed.
 - **Read-only on code.** The only write is the plan doc.

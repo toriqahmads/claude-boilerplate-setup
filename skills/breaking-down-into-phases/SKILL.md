@@ -25,6 +25,19 @@ Do these in order. Create a todo per step.
    Each phase = a clear purpose + defined interfaces + a self-contained, testable deliverable.
    Files/concerns that change together belong in the same phase. A **small goal may be a single
    phase** — don't invent phases to look thorough.
+
+   **Exception — the API-contract seam (enables parallel backend + frontend).** When a
+   user-facing feature has a clean API seam and both sides are substantial, you MAY split a
+   **backend (provider) track** and a **frontend (consumer) track** as separate phases —
+   *because the frozen API contract is exactly the clean interface that makes them independently
+   buildable*, which is this skill's own bar, not a layer-split anti-pattern. Conditions: the API
+   contract artifact (`docs/plan/contracts/<feature>.*`) is authored and frozen first (it is the
+   produced/consumed interface between the two tracks), the frontend track builds against a
+   contract-derived mock, and both carry conformance tests. Record the contract as **produced by**
+   the design/contract phase and **consumed by** both tracks; mark the two tracks as
+   parallel-eligible (contract-isolated, separate worktrees) so `executing-phase-plans` can run
+   them concurrently. See `coordinating-api-contract`. If either side is thin, keep the vertical
+   slice instead — don't force the split.
 3. **Order them and map dependencies.** What must land before what, and why. Prefer an order
    where each phase produces working, testable software and later phases consume earlier ones.
 4. **Write the breakdown doc.** Save to `docs/plan/breakdown/YYYY-MM-DD-<topic>-breakdown.md` —
@@ -49,7 +62,11 @@ Do these in order. Create a todo per step.
 
 ## Common Mistakes
 
-- Splitting by technical layer (all models, then all controllers) instead of by deliverable.
+- Splitting by technical layer (all models, then all controllers) instead of by deliverable —
+  **except** the sanctioned backend/frontend contract-seam split above, where a **frozen API
+  contract** is the clean interface making both tracks independently buildable (and parallel-eligible).
+- Splitting backend/frontend tracks **without** a frozen contract artifact between them — that's a
+  layer-split with hidden coupling, not the sanctioned seam. Freeze the contract first, or keep the slice vertical.
 - Phases that can't be built or tested independently — hidden cross-coupling.
 - Consuming an interface a later phase produces (dependency cycle / wrong order).
 - Gaps or overlaps vs. the design — the union must equal the whole.

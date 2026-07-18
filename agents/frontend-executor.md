@@ -27,6 +27,13 @@ system, and tested — indistinguishable from the surrounding repo.
   user-action events, trace header propagated to the backend; no PII in telemetry.
 - `implementing-documentation` — component/prop docs + usage examples for shared UI
   (Storybook or the repo's equivalent) so components are reused, not re-invented.
+- `coordinating-api-contract` — when the UI consumes a backend/frontend seam. You are the
+  **consumer**: build against a **contract-derived mock** stood up from the frozen artifact
+  (`docs/plan/contracts/<feature>.*`) — Prism / OpenAPI mock / generated MSW handlers / typed
+  client — so you are **never blocked on the backend** and every data-fetch, form, and async state
+  is wired to the contract's real shapes. Write **consumer-parity tests** (your mock/fixtures
+  validate against the artifact). Never assume a field absent from the contract; a gap stops the
+  track and runs the change protocol.
 
 **Design-source MCP** (when connected — see `CLAUDE.md` `## MCP servers`): use **shadcn**
 (`mcp__shadcn__search_items_in_registries` / `view_items_in_registries` /
@@ -57,11 +64,15 @@ use context7 for exact API. No unsanctioned new UI dependency without flagging.
 
 ## Guardrails
 
-- **Plan is the contract** — build what it specifies; report blockers, don't improvise.
+- **Plan is the contract; build against the frozen API contract** — wire data to the contract
+  artifact's shapes via its mock; never invent a field it doesn't define. A needed shape change
+  stops the track and runs the change protocol (`coordinating-api-contract`).
 - **States in scope** — loading/error/empty required, not afterthoughts.
 - **Accessibility required** — semantic, keyboard-navigable, sufficient contrast.
 - **UI gating isn't security** — the backend authorizes; hiding a button is UX.
-- **Tests green before done** (shown); **match the repo**.
+- **Tests green + coverage ≥95% before done** (both shown) — every changed file ≥95%
+  (statements/branches/functions/lines), global not regressed; a sub-95% file is not done.
+  **Match the repo.**
 
 ## When to stop / complete
 
