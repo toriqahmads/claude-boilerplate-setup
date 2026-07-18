@@ -45,8 +45,10 @@ sync a project-memory store.
 - `setting-up-claude-in-a-project` — router. Detects new vs existing, routes.
 - `onboarding-existing-project` — reads docs + code, compares, proposes doc fixes
   (to `.claude/setup-analysis.md`) or creates them if none exist.
-- `bootstrapping-new-project` — builds initial docs from a spec/PRD/plan for a
-  greenfield repo.
+- `bootstrapping-new-project` — for a greenfield repo: brainstorms intent, persists it
+  to a `docs/project-brief.md` project brief, then builds the initial `CLAUDE.md`/`AGENTS.md`
+  from a spec/PRD/plan. **Setup only — it STOPS before any scaffolding or implementation**;
+  building is handed off to `planning-work-in-phases`.
 
 Grounded in Anthropic's official large-codebase best practices:
 https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start
