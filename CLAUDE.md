@@ -51,6 +51,17 @@ sync a project-memory store.
 Grounded in Anthropic's official large-codebase best practices:
 https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start
 
+**Personal (user-global) scope** — separate from the project setup above:
+
+- `personalizing-claude` — interviews the user and writes their **personal** global
+  `~/.claude/CLAUDE.md` (identity, communication, coding conventions, git/security rules,
+  Definition of Done, guardrails) — the guide Claude reads in *every* project. This is
+  **user-global**, not a *project* store, so the "no project-memory store" line above still
+  holds: `~/.claude/CLAUDE.md` (personal, all projects) is a different file from
+  `<project>/CLAUDE.md` (shared, one repo). Never overwrites an existing personal file without
+  confirming. Own slash command: `/personal-setup`. Carries `references/` (interview question
+  bank + fill-in template).
+
 ## Planning workflow skills
 
 Second capability: turn a goal (a prompt, docs, a Jira/Linear ticket, a PRD, or a bare
@@ -385,7 +396,8 @@ convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-un
 ├── scripts/
 │   └── install-plugins.sh                    # optional companions: superpowers + ponytail plugins + rtk CLI/hook
 ├── commands/
-│   └── setup.md                              # /claude-boilerplate:setup → runs the setup router skill
+│   ├── setup.md                              # /claude-boilerplate:setup → runs the setup router skill
+│   └── personal-setup.md                     # /claude-boilerplate:personal-setup → runs personalizing-claude (user-global ~/.claude/CLAUDE.md)
 ├── hooks/                                    # plugin-native hooks (wired in hooks.json, active when enabled)
 │   ├── hooks.json                            # hook wiring via ${CLAUDE_PLUGIN_ROOT}
 │   ├── session-start-context.sh              # SessionStart: load branch/in-progress-plan + API-contract state (version, ⚠ NEEDS-RESYNC, worktrees)
@@ -414,6 +426,7 @@ convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-un
     ├── setting-up-claude-in-a-project/       # setup router: new vs existing
     ├── onboarding-existing-project/      # existing-project workflow
     ├── bootstrapping-new-project/        # new-project workflow
+    ├── personalizing-claude/             # personal (user-global) ~/.claude/CLAUDE.md via interview (references/: interview-questions, personal-claude-template)
     ├── planning-work-in-phases/          # planning router: brainstorm→breakdown→plan→execute→review
     ├── brainstorming-a-goal/             # planning phase 1: goal → design doc (references/: visual-companion, templates)
     ├── breaking-down-into-phases/        # planning phase 2: design → phases (references/: breakdown-template)

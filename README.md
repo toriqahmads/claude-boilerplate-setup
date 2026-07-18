@@ -14,7 +14,7 @@ invoked by task context, or on demand via the namespaced slash commands
 
 ## What you get
 
-- **27 skills** — setup, planning-workflow, design rubrics, implementation craft, testing.
+- **29 skills** — setup, personal-guide, planning-workflow, design rubrics, implementation craft, testing.
 - **18 subagents** — research, exploration, debugging, a phase-1 design squad, phase-4
   executors, and a phase-5 review gate.
 - **3 hooks** — session-context load, edited-file formatting, and a doc-sync reminder.
@@ -29,6 +29,7 @@ invoked by task context, or on demand via the namespaced slash commands
 | Area | What it does |
 |------|--------------|
 | **Setup** | `setting-up-claude-in-a-project` (router) → `onboarding-existing-project` / `bootstrapping-new-project`. Gets `CLAUDE.md` / `AGENTS.md` and docs accurate and in sync. **Never overwrites an existing `CLAUDE.md`.** |
+| **Personal guide** | `personalizing-claude` (`/personal-setup`) — interviews you and writes your **personal global** `~/.claude/CLAUDE.md` (rules/preferences applied across all projects). User-global scope, distinct from project setup. |
 | **Planning workflow** | `planning-work-in-phases` (router) drives `brainstorming-a-goal` → `breaking-down-into-phases` → `planning-each-phase` → `executing-phase-plans` → `reviewing-phase-implementation`, with an approval gate between. |
 | **On-ramps** | `debugging-an-issue` (bug → root-cause diagnosis doc) and `finding-security-vulnerabilities` (audit → assessment doc) both feed the planning workflow. |
 | **Design squad** | `architecture-agent`, `database-designer-agent`, `api-designer-agent`, `frontend-designer-agent` advise the spec; `spec-author-agent` + `plan-writer-agent` write the artifacts; `design-reviewer-agent` gates them. |
@@ -143,6 +144,28 @@ This runs the `setting-up-claude-in-a-project` router, which:
 
 ---
 
+## Set up your personal guide — step by step
+
+Separate from per-project setup: build your **personal, global** `~/.claude/CLAUDE.md` — the
+rules and preferences Claude Code reads in *every* project on your machine.
+
+```
+/claude-boilerplate:personal-setup
+```
+
+(or simply ask Claude Code: *"set up my personal CLAUDE.md"*.)
+
+This runs the `personalizing-claude` skill, which **interviews you** in rounds — identity,
+communication, coding conventions, git, security, workflow, Definition of Done, guardrails, docs —
+then writes `~/.claude/CLAUDE.md` from your answers.
+
+> **User-global scope:** this is a different file from a project's `CLAUDE.md`.
+> `~/.claude/CLAUDE.md` applies to all your projects; `<project>/CLAUDE.md` is shared with your
+> team for one repo. Like project setup, it **never overwrites** an existing personal file without
+> confirming.
+
+---
+
 ## How to use it
 
 Once installed, the skills and agents are **invoked automatically** by task context — you
@@ -224,13 +247,14 @@ claude plugin uninstall claude-boilerplate          # remove (add --scope user|l
 
 ## Function reference
 
-### Skills (28)
+### Skills (29)
 
 | Skill | Purpose |
 |-------|---------|
 | `setting-up-claude-in-a-project` | Router: new vs existing → the right setup workflow. |
 | `onboarding-existing-project` | Sync `CLAUDE.md`/docs with real code; propose, don't overwrite. |
 | `bootstrapping-new-project` | Author initial docs from a spec/PRD/plan (greenfield). |
+| `personalizing-claude` | Interview → your personal global `~/.claude/CLAUDE.md` (`/personal-setup`). |
 | `planning-work-in-phases` | Router for brainstorm → breakdown → plan → execute → review. |
 | `brainstorming-a-goal` | Phase 1: goal → approved design doc (spec). |
 | `breaking-down-into-phases` | Phase 2: design → N contextful phases. |

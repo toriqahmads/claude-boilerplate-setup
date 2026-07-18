@@ -10,6 +10,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ### Added
 
+- **`personalizing-claude` skill** — interviews the user in rounds and writes their **personal,
+  user-global** `~/.claude/CLAUDE.md` (identity, communication, coding conventions, git/security
+  rules, Definition of Done, guardrails) — the guide Claude reads in *every* project. User-global
+  scope, distinct from the project-scoped setup skills; never overwrites an existing personal file
+  without confirming. Ships a `/personal-setup` command and `references/` (interview question bank
+  + fill-in template).
 - **`coordinating-api-contract` skill** — cross-cutting spine that lets the backend and frontend
   code implementors work **in parallel without drift**. The API contract becomes a standalone,
   frozen, versioned artifact at `docs/plan/contracts/<feature>.<openapi.yaml|graphql|proto>` that
