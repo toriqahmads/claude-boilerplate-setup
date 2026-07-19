@@ -77,9 +77,12 @@ Do these in order. Create a todo per step.
    `superpowers` + `ponytail` plugins and the `rtk` token-optimizer CLI/hook (needs `jq`). They
    are optional — the skills work without them. See `CLAUDE.md` `## Plugins & external tooling`.
 10. **STOP and hand off — do not build.** Setup is done. Tell the user the repo is set up
-    (brief + `CLAUDE.md` + wiring) and that **when they're ready to build**, they run the
+    (brief + root `CLAUDE.md` + wiring) and that **when they're ready to build**, they run the
     `planning-work-in-phases` workflow (or `superpowers`), which reads `docs/project-brief.md`
-    as its starting point. Do **not** begin implementation or scaffolding now — end here.
+    as its starting point. Note in the handoff that the build will **layer a `CLAUDE.md` +
+    `AGENTS.md` symlink into each meaningful source directory as it scaffolds** (phase 4,
+    `executing-phase-plans`) — the per-subtree docs this setup can't create yet. Do **not** begin
+    implementation or scaffolding now — end here.
 
 ## Setup quality bar (from official guidance)
 
@@ -89,7 +92,11 @@ Do these in order. Create a todo per step.
 - Keep it honest — document decisions made, mark open questions as open. Don't
   document a structure that doesn't exist yet.
 - **Reusable expertise → Skills, not CLAUDE.md.**
-- Plan to layer per-subdir CLAUDE.md files as the codebase grows.
+- **Layered per-subdir CLAUDE.md come later, at scaffold time — not here.** No source
+  directories exist yet, so only the **root** `CLAUDE.md` (+ `AGENTS.md` symlink) is created now.
+  When the build scaffolds the source tree (phase 4, `executing-phase-plans`), **each meaningful
+  source directory** gets its own light `CLAUDE.md` + `AGENTS.md` symlink, root kept in sync — via
+  `implementing-documentation`. Seed this expectation in the brief/handoff so the build honors it.
 
 ## Common Mistakes
 

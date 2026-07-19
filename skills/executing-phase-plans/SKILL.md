@@ -163,7 +163,19 @@ Both sub-modes: never start implementation on `main`/`master` without explicit u
 ### Step 3: Review, then complete development
 
 After every task in the phase plan passes and is verified, the phase is **built and committed but
-not yet done** — it must pass review first. **REQUIRED SUB-SKILL:** use
+not yet done** — it must pass review first.
+
+**First, sync the layered project-context docs.** If this phase **scaffolded or reshaped the
+directory structure** (created a source tree, a new package/app/service, or a meaningful source
+directory), give **each meaningful source directory** its own light `CLAUDE.md` (what the subtree
+is, its key files/entry points, local conventions and gotchas — pointers, not prose) with an
+`AGENTS.md` symlink beside it (`ln -s CLAUDE.md AGENTS.md`), and keep the root `CLAUDE.md` in sync
+— in this phase's commits, never later. The root was seeded at bootstrap; the layered subtree docs
+are created here, once the directories exist. Follow `implementing-documentation` (Supporting
+docs → project context docs). This is the layered form of the keep-docs-synced convention that the
+Stop doc-sync hook only reminds about for the root.
+
+Then review. **REQUIRED SUB-SKILL:** use
 `reviewing-phase-implementation` (phase 5) to review this phase against its design doc and plan.
 **Defer the merge until review approves** — until then the natural finish is keep-as-is (or open a
 PR); do not merge to the base branch on unreviewed work.
@@ -239,6 +251,9 @@ Don't force through blockers — stop and ask.
 - Follow the plan's steps exactly; don't skip verifications.
 - **Coverage gate before done** — tests green *and* ≥95% per changed file + global not regressed
   (show the report); a sub-95% file is not done.
+- **Layered docs before done** — a phase that scaffolds/reshapes structure gives each meaningful
+  source directory its own `CLAUDE.md` + `AGENTS.md` symlink and keeps the root in sync, in the
+  same phase (via `implementing-documentation`).
 - Subagent mode: one implementer at a time **per worktree** (same-worktree parallel = conflicts);
   task review after each. Contract-isolated tracks in separate worktrees are the one exception.
 - Always write progress + changes + commits to the committed `progress.md` per phase — it is
@@ -260,6 +275,8 @@ Don't force through blockers — stop and ask.
   letting a track change a request/response shape in code instead of running the contract-change protocol.
 - Not writing/committing `progress.md`, or only updating it at the end — write it after each task,
   or resume and cross-agent review have nothing to read.
+- Scaffolding a new source tree/package but leaving only the root `CLAUDE.md` — each meaningful
+  source directory needs its own layered `CLAUDE.md` + `AGENTS.md` symlink, created in the same phase.
 - Running a single named plan whose earlier-phase dependencies aren't done, without warning the user.
 - Cleaning up a harness-owned worktree, or one for option 2/3.
 

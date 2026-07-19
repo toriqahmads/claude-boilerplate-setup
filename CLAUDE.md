@@ -205,7 +205,9 @@ hashing, safe sessions/tokens, server-side deny-by-default enforcement, RBAC /
 fine-grained authz, per-resource checks against IDOR, negative authz tests); and
 `implementing-observability` (structured logging, distributed tracing, RED/USE metrics,
 health checks, monitoring, SLO-based alerting); `implementing-documentation` (API docs
-via OpenAPI/Swagger kept in sync with the code, plus README/CHANGELOG/ADR/runbook); and
+via OpenAPI/Swagger kept in sync with the code, plus README/CHANGELOG/ADR/runbook and a
+layered per-subtree `CLAUDE.md`+`AGENTS.md` symlink in each meaningful source directory,
+created at scaffold time); and
 `coordinating-api-contract` (the backend↔frontend contract discipline that lets the two
 executors work in parallel — a standalone, frozen, versioned contract artifact under
 `docs/plan/contracts/`, backend building to it as **provider** and frontend against a
@@ -450,7 +452,7 @@ convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-un
     ├── implementing-i18n/                # exec craft (cross-cutting): internationalization best practice
     ├── implementing-auth-and-authorization/ # exec craft (cross-cutting): authn + RBAC/fine-grained authz + secure coding
     ├── implementing-observability/      # exec craft (cross-cutting): logging, tracing, metrics, monitoring, alerting
-    ├── implementing-documentation/      # exec craft (cross-cutting): API docs (OpenAPI/Swagger) + README/CHANGELOG/ADR/runbook
+    ├── implementing-documentation/      # exec craft (cross-cutting): API docs (OpenAPI/Swagger) + README/CHANGELOG/ADR/runbook + layered per-subtree CLAUDE.md/AGENTS.md
     ├── coordinating-api-contract/       # exec craft (cross-cutting): frozen contract spine → parallel backend(provider)+frontend(consumer/mock), change protocol, conformance gates, cross-session resume (references/: contract-status-template)
     ├── testing-apis/                     # phase-5 QA craft: black-box API/contract testing (qa-tester follows it)
     └── testing-ui-and-e2e/               # phase-5 QA craft: browser UI + E2E via Playwright (qa-tester follows it)
