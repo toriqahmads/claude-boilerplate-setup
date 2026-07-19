@@ -35,6 +35,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
   - Approval gates are tier-gated: **single end gate** for Small/autonomous, milestone for
     Standard, per-phase for Large.
 
+- **Execution speed — cut the dominant per-loop costs** in `executing-phase-plans`,
+  `planning-each-phase`, and the plan template (execution was the 1–2h bottleneck):
+  - **Focused tests in the TDD loop, full suite + coverage once at the phase gate.** Loop steps run
+    only the test file/case under work (fail-fast); the whole suite and coverage run a single time
+    at the gate. Plans/template now write focused step commands + one full-suite+coverage
+    done-criteria block. Removes the repeated whole-suite sweep that dominated execution time.
+  - **Model tiering enforced** — mechanical/boilerplate/test-scaffolding on the cheapest tier, top
+    model only for design + final review; every dispatch names its model.
+  - **Coarser task granularity for Small/Standard** — one meaningful testable deliverable per task,
+    not one micro-action, cutting round-trip/test/commit overhead. Finer only for Large/high-risk.
+
 - **`personalizing-claude` skill** — interviews the user in rounds and writes their **personal,
   user-global** `~/.claude/CLAUDE.md` (identity, communication, coding conventions, git/security
   rules, Definition of Done, guardrails) — the guide Claude reads in *every* project. User-global

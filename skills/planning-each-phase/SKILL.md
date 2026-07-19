@@ -65,8 +65,17 @@ for large plans, optionally dispatch [references/plan-reviewer-prompt.md](refere
 after the self-review.
 
 - **Map the file structure** first: which files are created/modified, one responsibility each.
-- **Right-size tasks**: a task is the smallest unit carrying its own test cycle and worth a
-  fresh reviewer's gate; each ends in an independently testable deliverable.
+- **Right-size tasks**: a task is a unit carrying its own test cycle and worth a fresh reviewer's
+  gate; each ends in an independently testable deliverable. **Prefer coarser tasks for
+  Small/Standard tiers** — one meaningful testable deliverable per task, not one micro-action.
+  Every task is a model round-trip + test run + commit; over-granular tasks multiply that overhead.
+  Split finer only for Large/high-risk where per-task review earns it.
+- **Focused test commands in the loop; one full-suite+coverage command at the gate.** Each task's
+  test steps run **only that task's test** (single file/case, fail-fast — e.g. `vitest run x.test.ts`,
+  `pytest x::test -x`, `go test ./pkg -run TestX`), **never the whole suite** per step. Repeated
+  suite sweeps are the dominant execution time cost. The phase's **done-criteria** carries the one
+  full command — `<full suite + coverage>` — run once at the gate. Write the commands this way in
+  the plan so execution inherits the fast loop.
 - **Plan header:**
 
   ```markdown
@@ -110,7 +119,7 @@ after the self-review.
 
   - [ ] **Step 2: Run test to verify it fails**
 
-  Run: `<exact test command>`
+  Run: `<exact **focused** test command — this file/case only, fail-fast; not the whole suite>`
   Expected: FAIL with "<expected message>"
 
   - [ ] **Step 3: Write minimal implementation**
@@ -122,7 +131,7 @@ after the self-review.
 
   - [ ] **Step 4: Run test to verify it passes**
 
-  Run: `<exact test command>`
+  Run: `<same **focused** test command as Step 2>`
   Expected: PASS
 
   - [ ] **Step 5: Commit**
@@ -154,7 +163,8 @@ after the self-review.
 
 - Exact file paths always.
 - **No full code bodies** — specify the signature + behavior + exact I/O; execution writes the body.
-- Exact commands with expected output.
+- Exact commands with expected output — **focused test command per step** (single file/case),
+  the **full suite + coverage command only in the phase's done-criteria** (run once at the gate).
 - **DRY** (no repeated logic), **YAGNI** (only what the spec asks), **KISS** (simplest thing that
   works), **SOLID** (single-responsibility units, clean interfaces), **TDD**, frequent commits.
 

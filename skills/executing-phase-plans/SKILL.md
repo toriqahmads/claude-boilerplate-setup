@@ -155,9 +155,12 @@ which track went stale after a contract bump — re-sync it before continuing. S
   - **The coverage gate (≥95% per changed file + global not regressed) is verified before the phase
     is done, every tier** — show the report. Per-task tiers verify it each task; per-phase tiers
     verify it at phase end. It is never skipped, only batched.
-- **Model selection** — cheapest tier for mechanical/transcription tasks, standard for
-  integration, most capable for design and the final whole-branch review. Specify the model
-  explicitly on every dispatch.
+- **Model selection (enforced, not optional)** — dispatch mechanical/boilerplate/test-scaffolding
+  and transcription tasks on the **cheapest tier** (e.g. Haiku), standard tier for integration
+  wiring, and the **most capable** (e.g. Opus) only for design-heavy tasks and the final
+  whole-phase review. Running every task on the top model is a major wall-clock and cost cost for
+  no quality gain on rote work. **Every dispatch names its model**; if unspecified, default by task
+  nature (rote → cheap, design/review → capable).
 - **One implementer at a time _per worktree_** (parallel implementers in the same worktree
   conflict). The only sanctioned concurrency is contract-isolated tracks in **separate**
   worktrees (see [Parallel tracks](#parallel-tracks-contract-isolated)); within any one worktree,
@@ -172,12 +175,35 @@ which track went stale after a contract bump — re-sync it before continuing. S
 
 Both sub-modes: never start implementation on `main`/`master` without explicit user consent.
 
+**Test-run strategy — focused in the loop, full suite once at the gate (biggest execution
+speed-up).** Re-running the whole test suite (worse, coverage-instrumented) on every TDD step ×
+every task is usually the dominant execution time cost. Instead:
+
+- **In the TDD loop, run only the test under work** — the single file/case, with fail-fast: e.g.
+  `vitest run path/to/x.test.ts`, `pytest path::test -x`, `go test ./pkg -run TestX`,
+  `cargo test x`. Fast feedback per step, not a suite sweep.
+- **Run the full suite + coverage exactly once, at the phase gate** (Step 3, before review) — this
+  is where the ≥95% coverage gate and cross-test-interaction breakage are caught. Not per task.
+- **Never compute coverage inside the loop** — instrumentation is slow; coverage is a phase-end
+  measurement, not a per-step one.
+- If the plan's step commands run the whole suite each step, treat that as a plan defect and run
+  the focused equivalent instead (the plan should already specify focused commands — see
+  `planning-each-phase`).
+
+This trades a slightly later catch of cross-test breakage (caught at the gate) for an N× drop in
+repeated suite runs. The coverage bar is unchanged — just measured once, at the end.
+
 ### Step 3: Review, then complete development
 
 After every task in the phase plan passes and is verified, the phase is **built and committed but
 not yet done** — it must pass review first.
 
-**First, sync the layered project-context docs.** If this phase **scaffolded or reshaped the
+**Run the full suite + coverage now — once.** This is the single point where the whole test suite
+and the coverage report run (the loop ran only focused tests). Confirm all green and the ≥95% gate
+holds (per changed file + global not regressed) before moving to review. A failure here is a real
+finding — fix it, then re-run.
+
+**Then sync the layered project-context docs.** If this phase **scaffolded or reshaped the
 directory structure** (created a source tree, a new package/app/service, or a meaningful source
 directory), give **each meaningful source directory** its own light `CLAUDE.md` (what the subtree
 is, its key files/entry points, local conventions and gotchas — pointers, not prose) with an
@@ -263,6 +289,10 @@ Don't force through blockers — stop and ask.
 - Follow the plan's steps exactly; don't skip verifications.
 - **Coverage gate before done** — tests green *and* ≥95% per changed file + global not regressed
   (show the report); a sub-95% file is not done.
+- **Focused tests in the loop, full suite + coverage once at the gate** — never run the whole suite
+  or coverage per TDD step; that repeated sweep is the dominant execution time cost.
+- **Enforce model tiering** — cheap tier for rote/mechanical/test-scaffolding, top model only for
+  design + final review. Every dispatch names its model.
 - **Layered docs before done** — a phase that scaffolds/reshapes structure gives each meaningful
   source directory its own `CLAUDE.md` + `AGENTS.md` symlink and keeps the root in sync, in the
   same phase (via `implementing-documentation`).
@@ -281,6 +311,11 @@ Don't force through blockers — stop and ask.
 - Executing a later phase before the earlier one it depends on.
 - Skipping the phase's review entirely, or the inline-mode verifications — per-phase review (Small/
   Standard) still reviews the full diff at phase end; only the *per-task* cadence is tier-optional.
+- Running the **full test suite or coverage on every TDD step** instead of the focused test under
+  work — the repeated suite sweep is usually the biggest execution time sink. Full suite + coverage
+  run **once**, at the phase gate.
+- Dispatching **every** task on the top model, including rote/boilerplate — a wall-clock and cost
+  cost for no quality gain. Tier the model to the task.
 - Marking a task/phase done with tests green but the **coverage gate unmet** (a changed file under
   95%, or a global regression) — that is not done.
 - Dispatching parallel implementer subagents **into the same worktree** — they conflict. (Separate
