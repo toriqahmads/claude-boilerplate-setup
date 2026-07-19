@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ## [Unreleased]
 
+### Fixed
+
+- **Duplicate hook registration on plugin install.** `plugin.json` declared
+  `"hooks": "./hooks/hooks.json"` while Claude Code also auto-discovers that same file at the
+  conventional `hooks/hooks.json` path — registering each hook twice. Removed the redundant manifest
+  key; the hooks still load via the default-location convention.
+
 ### Added
 
 - **Complexity tiers — the planning workflow's throttle.** `planning-work-in-phases` now

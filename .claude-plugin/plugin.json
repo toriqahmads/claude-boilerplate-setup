@@ -6,6 +6,5 @@
   "homepage": "https://github.com/toriqahmads/claude-boilerplate-setup",
   "repository": "https://github.com/toriqahmads/claude-boilerplate-setup",
   "license": "MIT",
-  "keywords": ["boilerplate", "setup", "planning", "workflow", "skills", "agents", "tdd", "code-review"],
-  "hooks": "./hooks/hooks.json"
+  "keywords": ["boilerplate", "setup", "planning", "workflow", "skills", "agents", "tdd", "code-review"]
 }
