@@ -31,6 +31,8 @@ don't care about; add topics they raise.
 - **Autonomy level** — ask-before-big-changes / high-autonomy / low-autonomy / plan-first-always.
 - **Destructive-action policy** — what Claude must never do without explicit go-ahead (DB
   migrations, hard reset, force-push, direct push to main, deletes). Free-text for their hard nos.
+- **Sandbox-first for destructive actions** — when a destructive/irreversible action is genuinely
+  needed, replicate & validate in local/sandbox first, then confirm / just do it / no such rule.
 
 ## Round 4 — Coding conventions  → template "Coding conventions"
 
@@ -48,35 +50,49 @@ don't care about; add topics they raise.
 
 - **Discipline** — TDD / tests-alongside / tests-after-on-request / flexible-per-project.
 - **Coverage gate** — enforced threshold (e.g. ≥95% on touched files) or none.
+- **Test layout** — how tests map to source: mirror the source tree (test path mirrors source
+  path) / co-located next to source / flat `tests/` dir / follow project convention.
 
-## Round 6 — Git & commits  → template "Git & commits"
+## Round 6 — Observability  → template "Observability"
+
+- **Logging** — comprehensive structured logging with dev/prod levels? Which tools (pino / winston /
+  structlog / slog / zerolog / tracing), or none/don't-care. Secret/PII redaction expected?
+- **Tracing** — distributed tracing? Which (OpenTelemetry / Jaeger / Tempo / Sentry), or none.
+- **Monitoring & error tracking** — error capture + metrics + alerting? Which (Sentry / Prometheus),
+  or none. Skip the whole round if they don't care about observability.
+
+## Round 7 — Git & commits  → template "Git & commits"
 
 - **Commit style** — Conventional Commits / plain / other; small-scoped or not.
 - **Push/commit policy** — commit only when asked, never push to main, always branch, etc.
 - **Cherry-pick / rebase habits** — any specific git workflows they use (e.g. `git cherry-pick`).
 
-## Round 7 — Security  → template "Security"
+## Round 8 — Security  → template "Security"
 
 - **Posture** — paranoid/audit-minded / high-pragmatic / standard / speed-first.
 - **Domain specifics** — e.g. web3: reentrancy, overflow, access control, oracle manipulation.
 - **Secrets** — no secrets in code, never commit `.env`, etc.
+- **`.env` read policy** — may read `.env` freely / restrict to `.env.example` only and ask before
+  reading a real `.env` / no rule.
 
-## Round 8 — Workflow  → template "Workflow"
+## Round 9 — Workflow  → template "Workflow"
 
 - **Feature workflow** — brainstorm/explore → plan → build → review, or lighter. When to plan vs
   just build.
 
-## Round 9 — Definition of Done  → template "Definition of Done"
+## Round 10 — Definition of Done  → template "Definition of Done"
 
 - **Completion criteria** — what must hold before a task is "done" (tests + coverage, types/lint/
-  build pass, security reviewed, verified end-to-end, docs synced, no scope creep, honest report).
+  build pass, security reviewed, observability in place, verified end-to-end, docs synced, no scope
+  creep, honest report).
 
-## Round 10 — Guardrails  → template "Guardrails"
+## Round 11 — Guardrails  → template "Guardrails"
 
 - **Non-negotiables** — the consolidated hard rules Claude must never break (ask-don't-assume, no
-  destructive actions, no secrets, no API guessing, no unrequested refactors, no false completion).
+  destructive actions, no secrets / no reading real `.env`, no API guessing, no unrequested
+  refactors, no false completion).
 
-## Round 11 — Docs & knowledge  → template "Docs & knowledge"
+## Round 12 — Docs & knowledge  → template "Docs & knowledge"
 
 - **Doc habits** (multi-select) — keep CLAUDE.md synced, OpenAPI/API docs in sync, CHANGELOG,
   ADRs for decisions.
