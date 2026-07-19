@@ -13,7 +13,8 @@ one plan per phase → execute the plans → review the implementation** — han
 matching phase skill at each step. Do not do the phase work here — gather, check, route, gate.
 
 Each phase is its own delegatable skill. Between phases there is a **user approval
-gate**: do not advance until the current phase's artifact is approved.
+gate** — but **how many gates fire is set by the complexity tier** (Step 0.5): a Small/autonomous
+run collapses to a single end gate, a Large run keeps every gate. Classify the tier before routing.
 
 ## When to Use
 
@@ -103,19 +104,49 @@ Route in order — each is a mandatory hand-off, not optional:
    user review (or fully autonomous) against the spec + plan; on approval marks the plan done
    and stamps progress. A spec gap here loops back to phase 1.
 
-## Scale to size
+## Step 0.5 — Classify the complexity tier
 
-Match the ceremony to the goal — do not force a heavy brainstorm onto a settled request:
+**Before routing, size the goal and set its tier.** The tier is the workflow's throttle: it
+scales ceremony to the actual work so a small feature doesn't pay large-feature overhead. State
+the tier and its reasoning to the user, then carry it through every phase (record it in the design
+doc header so the phase skills read it). **Every phase skill reads this tier and adjusts** — it is
+not advisory.
 
-- **Source already has a thorough design** (a detailed PRD, an approved spec) → phase 1 is
-  a short **confirmation**, not a full Socratic brainstorm: summarize the design, fill gaps
-  with a few targeted questions, produce/adopt the design doc, get approval. Every goal
-  still gets a design doc and an approval — "too simple to need a design" is a trap; the
-  design can just be short.
-- **Small goal** → breakdown may collapse to a **single phase** → a single plan. Don't
-  invent phases to look thorough.
-- **Large / multi-subsystem goal** → the strength of this workflow: breakdown into N
-  contextful phases, one plan each.
+Default heavy ceremony is the single biggest reason a small feature takes hours. Right-sizing here
+is the highest-leverage step in the workflow.
+
+| Tier | Trigger | Phases | Execution | Review cadence | Phase-5 gate | Approval gates |
+|---|---|---|---|---|---|---|
+| **Trivial** | 1 file, no new interface, obvious change | 0 — skip the workflow, just do it | inline | self-verify + `/code-review` | none formal | none — do + report |
+| **Small** | one feature, ≲8 tasks, one subsystem, low risk (e.g. a CRUD quiz list) | **1** | **inline** | **per-phase** (one review at the end) | code + QA once; **security only if risk-flagged**; E2E once | **single end gate** |
+| **Standard** | multi-subsystem or moderate risk | 2–3 | subagent **or** inline | per-phase | full gate; E2E at end | milestone (after backend / after frontend) |
+| **Large** | many subsystems, high risk, or a contract-split parallel build | N | subagent-driven | **per-task** | full gate **per phase**; security every phase | per-phase |
+
+**Risk flag (overrides size upward).** If the change touches **auth, crypto, payments, PII, file
+uploads, or untrusted external input**, force the security pass and a heavier gate regardless of
+size — a Small quiz with **grading/submission** logic is risk-flagged (gets security + tighter
+review); a quiz **list/browse** CRUD is not. When unsure whether a tier fits, **ask the user** —
+don't silently pick heavy or light.
+
+**Ceremony that never scales away, any tier:** every goal gets a design doc (short is fine) and one
+approval; the **≥95% coverage gate** (per-file changed + global ratchet); **security on any
+risk-flagged change**; an **E2E** proving user-visible behavior before done; spec↔code
+traceability. Tiers remove *redundant repetition and forced serialization*, never the quality bar.
+
+## Approval gates
+
+Between phases there is normally a user approval gate (design → breakdown → plans → build →
+review). **The tier sets how many gates actually fire:**
+
+- **Single end gate** (Small tier, or any run the user marks autonomous): approve the **design doc
+  once**, then the workflow runs breakdown → plan → execute → review straight through to **one
+  review gate at the end**. No pause between phases.
+- **Milestone gates** (Standard): pause at meaningful milestones (backend done, frontend done), not
+  every phase.
+- **Per-phase gates** (Large, or human-in-the-loop by request): the full gate between every phase.
+
+Never collapse the **final** review gate — a build is not done until its phase-5 review passes,
+whatever the tier.
 
 ## Convention this workflow enforces
 
@@ -125,4 +156,6 @@ Match the ceremony to the goal — do not force a heavy brainstorm onto a settle
 - **Delegate when present, inline when absent:** phases 1 and 3 use the superpowers skill if
   available; otherwise they ask the user to install it or continue with a faithful inline
   fallback.
-- **Approve before advancing:** never skip a phase's review gate.
+- **Tier-gated approvals:** the complexity tier (Step 0.5) sets how many inter-phase gates fire —
+  single end gate for Small/autonomous, per-phase for Large. The **final** phase-5 review gate is
+  never skipped at any tier.

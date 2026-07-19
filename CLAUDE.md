@@ -70,9 +70,20 @@ Second capability: turn a goal (a prompt, docs, a Jira/Linear ticket, a PRD, or 
 link) into an approved design, a phase breakdown, one implementation plan per phase, the
 executed build, and a reviewed result. Router + five delegatable phase skills.
 
+**Complexity tier — the workflow's throttle.** The router classifies every goal into a tier
+(**Trivial / Small / Standard / Large**, with a **risk flag** for auth/crypto/payments/PII/uploads/
+external-input that bumps ceremony up) and threads it through the design-doc header so every phase
+scales to it: phase count (Small = one phase), execution mode (Small = inline, not subagent-per-
+task), review cadence (per-phase for Small/Standard, per-task only for Large), phase-5 gate depth
+(security only when risk-flagged; E2E once at the end, not per phase), and how many approval gates
+fire (single end gate for Small/autonomous → per-phase for Large). Tiers cut *redundant repetition
+and forced serialization*, never the quality bar — the **≥95% coverage gate**, **security on any
+risk-flagged change**, an **E2E before done**, and spec↔code traceability hold at every tier. This
+is what keeps a small feature from paying large-feature overhead.
+
 - `planning-work-in-phases` — router. Gathers the source of truth, checks for the
-  `superpowers` plugin, routes brainstorm → breakdown → plan → execute → review with an
-  approval gate between.
+  `superpowers` plugin, **classifies the goal's complexity tier** (Step 0.5), and routes
+  brainstorm → breakdown → plan → execute → review with tier-gated approvals between.
 - `brainstorming-a-goal` — phase 1. Socratic dialogue → approved design doc (spec, not a
   plan). Delegates to `superpowers:brainstorming` if installed, else asks to install or
   brainstorms inline.

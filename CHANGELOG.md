@@ -8,7 +8,50 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ## [Unreleased]
 
+### Fixed
+
+- **Duplicate hook registration on plugin install.** `plugin.json` declared
+  `"hooks": "./hooks/hooks.json"` while Claude Code also auto-discovers that same file at the
+  conventional `hooks/hooks.json` path — registering each hook twice. Removed the redundant manifest
+  key; the hooks still load via the default-location convention.
+
 ### Added
+
+- **Complexity tiers — the planning workflow's throttle.** `planning-work-in-phases` now
+  classifies every goal into a tier (**Trivial / Small / Standard / Large**) with a **risk flag**
+  (auth/crypto/payments/PII/uploads/external-input) at a new **Step 0.5**, recorded in the
+  design-doc header and read by every phase to scale ceremony to the actual work — cutting a small
+  feature (e.g. a quiz) from hours of large-feature overhead. The quality bar is untouched (≥95%
+  coverage, security on risk-flagged changes, E2E before done, spec↔code traceability all hold at
+  every tier). Interview/template gain a **Complexity tier + Risk-flagged + Approval mode** header.
+
+### Changed
+
+- **Ceremony now scales to the complexity tier** across the planning skills:
+  - `breaking-down-into-phases` — **Small tier = exactly one phase** (no over-decomposition);
+    Standard 2–3, Large N, split only on real boundaries.
+  - `planning-each-phase` — Small plans in a single pass; Standard/Large plan one-at-a-time but
+    without inter-phase approval pauses under a single-end-gate / autonomous run.
+  - `executing-phase-plans` — execution mode is tier-driven (**Small = inline**, avoiding
+    subagent-per-task cold-start; Large = subagent-driven), and **review cadence is per-phase for
+    Small/Standard** (self-review + commit per task, full review once at phase end) vs per-task
+    only for Large/high-risk. The coverage gate is verified before done at every tier.
+  - `reviewing-phase-implementation` — the phase-5 gate scales: the **security pass runs only when
+    risk-flagged** at Small/Standard (every phase for Large), and **E2E runs once at the build's
+    end** for Small/Standard rather than per phase. Coverage gate + final review never skipped.
+  - Approval gates are tier-gated: **single end gate** for Small/autonomous, milestone for
+    Standard, per-phase for Large.
+
+- **Execution speed — cut the dominant per-loop costs** in `executing-phase-plans`,
+  `planning-each-phase`, and the plan template (execution was the 1–2h bottleneck):
+  - **Focused tests in the TDD loop, full suite + coverage once at the phase gate.** Loop steps run
+    only the test file/case under work (fail-fast); the whole suite and coverage run a single time
+    at the gate. Plans/template now write focused step commands + one full-suite+coverage
+    done-criteria block. Removes the repeated whole-suite sweep that dominated execution time.
+  - **Model tiering enforced** — mechanical/boilerplate/test-scaffolding on the cheapest tier, top
+    model only for design + final review; every dispatch names its model.
+  - **Coarser task granularity for Small/Standard** — one meaningful testable deliverable per task,
+    not one micro-action, cutting round-trip/test/commit overhead. Finer only for Large/high-risk.
 
 - **`personalizing-claude` skill** — interviews the user in rounds and writes their **personal,
   user-global** `~/.claude/CLAUDE.md` (identity, communication, coding conventions, git/security

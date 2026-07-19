@@ -64,18 +64,22 @@ ls ~/.claude/plugins/cache/*/superpowers/*/skills/subagent-driven-development/SK
 
 ## Two choices before executing
 
-Ask the user; if they have delegated the choice or you are running autonomously, decide as
-agent using the stated default.
+**Read the complexity tier first** (from the design/plan header — set by `planning-work-in-phases`
+Step 0.5). The tier sets the defaults below; ask the user only when the tier leaves it open or they
+want to override. If they delegated the choice or you're autonomous, use the tier default.
 
 1. **Isolated worktree, or work in place?** Default: **worktree** (protects the current
    branch). superpowers present → **REQUIRED SUB-SKILL:** `superpowers:using-git-worktrees`.
    Absent → inline: detect existing isolation (`git rev-parse --git-dir` vs `--git-common-dir`),
    prefer a native worktree tool, else `git worktree add` under an ignored `.worktrees/`;
    run project setup and verify a clean test baseline before implementing.
-2. **Execute in this session, or spawn subagents?** Same trade-off superpowers frames.
-   Default: **subagent-driven** when subagents are available (fresh context per task, review
-   between, higher quality); otherwise **inline** sequential execution. This picks Step 2's
-   sub-mode below.
+2. **Execute in this session, or spawn subagents? — tier-driven default:**
+   - **Small tier → inline** (Sub-mode B). One phase, few tasks; the subagent-per-task fan-out pays
+     a cold-start cost (each fresh subagent re-reads plan + interfaces + files) that isn't worth it
+     at this size. Inline sequential is faster with no quality loss for a small, low-risk feature.
+   - **Standard → inline or subagent**, your call by phase weight.
+   - **Large / high-risk / contract-split → subagent-driven** (Sub-mode A): fresh context per task,
+     review between, highest quality — worth the overhead when the work is big or risky.
 
 ## Execution order
 
@@ -139,13 +143,24 @@ which track went stale after a contract bump — re-sync it before continuing. S
   it proceeds.
 - Implementer implements, tests, commits, self-reviews, reports status (DONE /
   DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED).
-- After each task, run a **task review** (spec compliance **and** code quality) against the
-  diff, and verify the **coverage gate** — every changed file ≥95% (statements/branches/functions/
-  lines) and the global total not regressed; show the coverage report. Dispatch a fix subagent for
-  Critical/Important findings (a sub-95% changed file is one), then re-review until clean.
-- **Model selection** — cheapest tier for mechanical/transcription tasks, standard for
-  integration, most capable for design and the final whole-branch review. Specify the model
-  explicitly on every dispatch.
+- **Review cadence is tier-driven** — reviewing after *every* task is the biggest execution
+  multiplier, so spend it only where the risk justifies it:
+  - **Large / high-risk** → **per-task review**: after each task, run a full task review (spec
+    compliance **and** code quality) against the diff and verify the coverage gate; dispatch a fix
+    subagent for Critical/Important, re-review until clean.
+  - **Small / Standard** → **per-phase review**: each implementer still self-reviews, tests, and
+    commits its task (cheap, local); the **full** spec+quality review runs **once at phase end**
+    over the whole phase diff (Step 3). Catches the same defects a little later for a large drop in
+    overhead.
+  - **The coverage gate (≥95% per changed file + global not regressed) is verified before the phase
+    is done, every tier** — show the report. Per-task tiers verify it each task; per-phase tiers
+    verify it at phase end. It is never skipped, only batched.
+- **Model selection (enforced, not optional)** — dispatch mechanical/boilerplate/test-scaffolding
+  and transcription tasks on the **cheapest tier** (e.g. Haiku), standard tier for integration
+  wiring, and the **most capable** (e.g. Opus) only for design-heavy tasks and the final
+  whole-phase review. Running every task on the top model is a major wall-clock and cost cost for
+  no quality gain on rote work. **Every dispatch names its model**; if unspecified, default by task
+  nature (rote → cheap, design/review → capable).
 - **One implementer at a time _per worktree_** (parallel implementers in the same worktree
   conflict). The only sanctioned concurrency is contract-isolated tracks in **separate**
   worktrees (see [Parallel tracks](#parallel-tracks-contract-isolated)); within any one worktree,
@@ -160,12 +175,35 @@ which track went stale after a contract bump — re-sync it before continuing. S
 
 Both sub-modes: never start implementation on `main`/`master` without explicit user consent.
 
+**Test-run strategy — focused in the loop, full suite once at the gate (biggest execution
+speed-up).** Re-running the whole test suite (worse, coverage-instrumented) on every TDD step ×
+every task is usually the dominant execution time cost. Instead:
+
+- **In the TDD loop, run only the test under work** — the single file/case, with fail-fast: e.g.
+  `vitest run path/to/x.test.ts`, `pytest path::test -x`, `go test ./pkg -run TestX`,
+  `cargo test x`. Fast feedback per step, not a suite sweep.
+- **Run the full suite + coverage exactly once, at the phase gate** (Step 3, before review) — this
+  is where the ≥95% coverage gate and cross-test-interaction breakage are caught. Not per task.
+- **Never compute coverage inside the loop** — instrumentation is slow; coverage is a phase-end
+  measurement, not a per-step one.
+- If the plan's step commands run the whole suite each step, treat that as a plan defect and run
+  the focused equivalent instead (the plan should already specify focused commands — see
+  `planning-each-phase`).
+
+This trades a slightly later catch of cross-test breakage (caught at the gate) for an N× drop in
+repeated suite runs. The coverage bar is unchanged — just measured once, at the end.
+
 ### Step 3: Review, then complete development
 
 After every task in the phase plan passes and is verified, the phase is **built and committed but
 not yet done** — it must pass review first.
 
-**First, sync the layered project-context docs.** If this phase **scaffolded or reshaped the
+**Run the full suite + coverage now — once.** This is the single point where the whole test suite
+and the coverage report run (the loop ran only focused tests). Confirm all green and the ≥95% gate
+holds (per changed file + global not regressed) before moving to review. A failure here is a real
+finding — fix it, then re-run.
+
+**Then sync the layered project-context docs.** If this phase **scaffolded or reshaped the
 directory structure** (created a source tree, a new package/app/service, or a meaningful source
 directory), give **each meaningful source directory** its own light `CLAUDE.md` (what the subtree
 is, its key files/entry points, local conventions and gotchas — pointers, not prose) with an
@@ -251,11 +289,16 @@ Don't force through blockers — stop and ask.
 - Follow the plan's steps exactly; don't skip verifications.
 - **Coverage gate before done** — tests green *and* ≥95% per changed file + global not regressed
   (show the report); a sub-95% file is not done.
+- **Focused tests in the loop, full suite + coverage once at the gate** — never run the whole suite
+  or coverage per TDD step; that repeated sweep is the dominant execution time cost.
+- **Enforce model tiering** — cheap tier for rote/mechanical/test-scaffolding, top model only for
+  design + final review. Every dispatch names its model.
 - **Layered docs before done** — a phase that scaffolds/reshapes structure gives each meaningful
   source directory its own `CLAUDE.md` + `AGENTS.md` symlink and keeps the root in sync, in the
   same phase (via `implementing-documentation`).
 - Subagent mode: one implementer at a time **per worktree** (same-worktree parallel = conflicts);
-  task review after each. Contract-isolated tracks in separate worktrees are the one exception.
+  review cadence per tier (per-task for Large/high-risk, per-phase for Small/Standard). Contract-
+  isolated tracks in separate worktrees are the one exception.
 - Always write progress + changes + commits to the committed `progress.md` per phase — it is
   the resume ledger and a shared memory other agents review the implementation from.
 - Reference the skills the plan tells you to.
@@ -266,7 +309,13 @@ Don't force through blockers — stop and ask.
 
 - Running execution on a combined plan instead of per phase.
 - Executing a later phase before the earlier one it depends on.
-- Skipping the task review (subagent mode) or the verifications (inline mode).
+- Skipping the phase's review entirely, or the inline-mode verifications — per-phase review (Small/
+  Standard) still reviews the full diff at phase end; only the *per-task* cadence is tier-optional.
+- Running the **full test suite or coverage on every TDD step** instead of the focused test under
+  work — the repeated suite sweep is usually the biggest execution time sink. Full suite + coverage
+  run **once**, at the phase gate.
+- Dispatching **every** task on the top model, including rote/boilerplate — a wall-clock and cost
+  cost for no quality gain. Tier the model to the task.
 - Marking a task/phase done with tests green but the **coverage gate unmet** (a changed file under
   95%, or a global regression) — that is not done.
 - Dispatching parallel implementer subagents **into the same worktree** — they conflict. (Separate

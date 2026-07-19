@@ -19,12 +19,18 @@ interfaces. Splitting first keeps each later plan focused and each phase reviewa
 
 Do these in order. Create a todo per step.
 
-1. **Read the approved design.** Load `docs/plan/specs/…-design.md`. Treat it as the source
-   of truth for scope — the breakdown must cover it, no more, no less.
-2. **Identify the phases.** Decompose by responsibility and boundaries, not by technical layer.
-   Each phase = a clear purpose + defined interfaces + a self-contained, testable deliverable.
-   Files/concerns that change together belong in the same phase. A **small goal may be a single
-   phase** — don't invent phases to look thorough.
+1. **Read the approved design + its complexity tier.** Load `docs/plan/specs/…-design.md`. Treat it
+   as the source of truth for scope — the breakdown must cover it, no more, no less. Read the
+   **tier** from the design header (set by `planning-work-in-phases` Step 0.5) — it caps the phase
+   count.
+2. **Identify the phases — the tier bounds how many.** Decompose by responsibility and boundaries,
+   not by technical layer. Each phase = a clear purpose + defined interfaces + a self-contained,
+   testable deliverable. Files/concerns that change together belong in the same phase.
+   - **Small tier → exactly one phase.** Do not split; a Small feature is one contextful chunk. One
+     phase → one plan → one build → one review. Splitting a Small goal is the over-decomposition
+     that makes a quiz feature cost hours.
+   - **Standard → 2–3 phases. Large → N.** Only split when a boundary is real (a phase can be built
+     and tested independently), never to look thorough.
 
    **Exception — the API-contract seam (enables parallel backend + frontend).** When a
    user-facing feature has a clean API seam and both sides are substantial, you MAY split a
