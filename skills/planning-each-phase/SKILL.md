@@ -37,11 +37,15 @@ ls ~/.claude/plugins/cache/*/superpowers/*/skills/writing-plans/SKILL.md 2>/dev/
 
 Do these in order. Create a todo per step.
 
-1. **Read the approved breakdown.** Load `docs/plan/breakdown/…-breakdown.md`; take the ordered
-   phase list and the produced/consumed interfaces.
-2. **Plan each phase** (in order; **one at a time** recommended so later plans reflect earlier
-   phases' reality — offer to pause between them). For each phase, delegate or run the inline
-   fallback, saving to `docs/plan/phases/<N-slug>/plan.md`.
+1. **Read the approved breakdown + tier.** Load `docs/plan/breakdown/…-breakdown.md`; take the
+   ordered phase list, the produced/consumed interfaces, and the **complexity tier** (from the
+   design header — set by `planning-work-in-phases` Step 0.5).
+2. **Plan each phase.** For each phase, delegate or run the inline fallback, saving to
+   `docs/plan/phases/<N-slug>/plan.md`. **Cadence is tier-driven:**
+   - **Small tier** — one phase, so one plan, written in a single pass. No pause.
+   - **Standard/Large** — plan **one at a time** in order (so later plans reflect earlier phases'
+     reality); under a **single-end-gate / autonomous** run, plan them consecutively without
+     pausing for approval between; under per-phase gates, offer to pause between them.
 3. **Carry cross-phase interfaces.** Each phase's plan must reference the interfaces **produced
    by earlier phases** (from the breakdown), with exact names/types, so the plans compose.
    **For a backend/frontend contract-seam split** (see `breaking-down-into-phases` and

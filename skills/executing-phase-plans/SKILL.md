@@ -64,18 +64,22 @@ ls ~/.claude/plugins/cache/*/superpowers/*/skills/subagent-driven-development/SK
 
 ## Two choices before executing
 
-Ask the user; if they have delegated the choice or you are running autonomously, decide as
-agent using the stated default.
+**Read the complexity tier first** (from the design/plan header — set by `planning-work-in-phases`
+Step 0.5). The tier sets the defaults below; ask the user only when the tier leaves it open or they
+want to override. If they delegated the choice or you're autonomous, use the tier default.
 
 1. **Isolated worktree, or work in place?** Default: **worktree** (protects the current
    branch). superpowers present → **REQUIRED SUB-SKILL:** `superpowers:using-git-worktrees`.
    Absent → inline: detect existing isolation (`git rev-parse --git-dir` vs `--git-common-dir`),
    prefer a native worktree tool, else `git worktree add` under an ignored `.worktrees/`;
    run project setup and verify a clean test baseline before implementing.
-2. **Execute in this session, or spawn subagents?** Same trade-off superpowers frames.
-   Default: **subagent-driven** when subagents are available (fresh context per task, review
-   between, higher quality); otherwise **inline** sequential execution. This picks Step 2's
-   sub-mode below.
+2. **Execute in this session, or spawn subagents? — tier-driven default:**
+   - **Small tier → inline** (Sub-mode B). One phase, few tasks; the subagent-per-task fan-out pays
+     a cold-start cost (each fresh subagent re-reads plan + interfaces + files) that isn't worth it
+     at this size. Inline sequential is faster with no quality loss for a small, low-risk feature.
+   - **Standard → inline or subagent**, your call by phase weight.
+   - **Large / high-risk / contract-split → subagent-driven** (Sub-mode A): fresh context per task,
+     review between, highest quality — worth the overhead when the work is big or risky.
 
 ## Execution order
 
@@ -139,10 +143,18 @@ which track went stale after a contract bump — re-sync it before continuing. S
   it proceeds.
 - Implementer implements, tests, commits, self-reviews, reports status (DONE /
   DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED).
-- After each task, run a **task review** (spec compliance **and** code quality) against the
-  diff, and verify the **coverage gate** — every changed file ≥95% (statements/branches/functions/
-  lines) and the global total not regressed; show the coverage report. Dispatch a fix subagent for
-  Critical/Important findings (a sub-95% changed file is one), then re-review until clean.
+- **Review cadence is tier-driven** — reviewing after *every* task is the biggest execution
+  multiplier, so spend it only where the risk justifies it:
+  - **Large / high-risk** → **per-task review**: after each task, run a full task review (spec
+    compliance **and** code quality) against the diff and verify the coverage gate; dispatch a fix
+    subagent for Critical/Important, re-review until clean.
+  - **Small / Standard** → **per-phase review**: each implementer still self-reviews, tests, and
+    commits its task (cheap, local); the **full** spec+quality review runs **once at phase end**
+    over the whole phase diff (Step 3). Catches the same defects a little later for a large drop in
+    overhead.
+  - **The coverage gate (≥95% per changed file + global not regressed) is verified before the phase
+    is done, every tier** — show the report. Per-task tiers verify it each task; per-phase tiers
+    verify it at phase end. It is never skipped, only batched.
 - **Model selection** — cheapest tier for mechanical/transcription tasks, standard for
   integration, most capable for design and the final whole-branch review. Specify the model
   explicitly on every dispatch.
@@ -255,7 +267,8 @@ Don't force through blockers — stop and ask.
   source directory its own `CLAUDE.md` + `AGENTS.md` symlink and keeps the root in sync, in the
   same phase (via `implementing-documentation`).
 - Subagent mode: one implementer at a time **per worktree** (same-worktree parallel = conflicts);
-  task review after each. Contract-isolated tracks in separate worktrees are the one exception.
+  review cadence per tier (per-task for Large/high-risk, per-phase for Small/Standard). Contract-
+  isolated tracks in separate worktrees are the one exception.
 - Always write progress + changes + commits to the committed `progress.md` per phase — it is
   the resume ledger and a shared memory other agents review the implementation from.
 - Reference the skills the plan tells you to.
@@ -266,7 +279,8 @@ Don't force through blockers — stop and ask.
 
 - Running execution on a combined plan instead of per phase.
 - Executing a later phase before the earlier one it depends on.
-- Skipping the task review (subagent mode) or the verifications (inline mode).
+- Skipping the phase's review entirely, or the inline-mode verifications — per-phase review (Small/
+  Standard) still reviews the full diff at phase end; only the *per-task* cadence is tier-optional.
 - Marking a task/phase done with tests green but the **coverage gate unmet** (a changed file under
   95%, or a global regression) — that is not done.
 - Dispatching parallel implementer subagents **into the same worktree** — they conflict. (Separate

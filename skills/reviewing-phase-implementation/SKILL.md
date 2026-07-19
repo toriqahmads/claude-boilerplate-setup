@@ -18,6 +18,26 @@ Global Constraints and interfaces. Divergence from the spec is a review failure 
 the divergence is right, loop back and update the spec/plan (see below). Skipping review here is
 the fast path to shipping the wrong thing well-built.
 
+## Scale the gate to the complexity tier
+
+Read the **tier** (from the design/plan header — `planning-work-in-phases` Step 0.5) and the
+**risk flag**. The gate always runs, but its passes scale so a small feature isn't re-audited like
+a payments system:
+
+| Tier | Code review (dims 1–6) | Security pass | Functional QA / E2E |
+|---|---|---|---|
+| **Small** | always | **only if risk-flagged** (auth/crypto/payments/PII/uploads/external input) | QA once; E2E once, at the end |
+| **Standard** | always | if risk-flagged or security-relevant surface | QA per phase; E2E at end |
+| **Large / high-risk** | always | **every phase** | QA + E2E per phase |
+
+Two rules hold at **every** tier, no exceptions: the **≥95% coverage gate** (a sub-95% changed file
+or global regression blocks approval), and **any risk-flagged change gets the security pass** even
+at Small. "Scale the gate" means skip *redundant* passes on low-risk surfaces — never skip security
+where the risk is real, never skip the final review, never drop coverage.
+
+**E2E runs once, at the build's end, not per phase** (unless Large/high-risk) — a per-phase
+Playwright E2E on every phase is a top time cost and mostly re-proves the same journeys.
+
 ## Two review passes
 
 1. **Agent code reviewer** (always).
@@ -80,6 +100,12 @@ Grade findings **Critical / Important / Minor** across every dimension.
 
 ## Security pass (its own skill / agent)
 
+**When to run it** (see the tier table above): **every phase** for Large/high-risk; for
+Small/Standard, run it when the change is **risk-flagged** (auth, crypto, payments, PII, file
+uploads, untrusted external input) or otherwise touches a security-relevant surface. A low-risk
+Small feature (e.g. a quiz list/browse CRUD) skips the dedicated security pass — but a Small
+feature with **grading/submission/scoring** is risk-flagged and gets it. When in doubt, run it.
+
 Run security as a **dedicated pass**, not a bullet folded into the general review — it needs a
 distinct lens and its own reviewer. Use the first available:
 
@@ -117,7 +143,10 @@ plan's Testing Strategy:
   (served/generated spec == committed artifact). Any mismatch — doc vs code, mock vs provider — is
   a **blocking** finding (`coordinating-api-contract`).
 - **UI / E2E** — the critical user journeys, every async state, accessibility, and
-  responsive/cross-browser behavior via Playwright (`testing-ui-and-e2e`).
+  responsive/cross-browser behavior via Playwright (`testing-ui-and-e2e`). **Run E2E once at the
+  build's end for Small/Standard tiers** (per phase only for Large/high-risk) — a full Playwright
+  E2E on every phase mostly re-proves the same journeys and is a top time cost. API/contract checks
+  still run at each phase's review; the browser E2E batches to the end.
 
 It writes a persisted, non-flaky regression suite (test files only — never app source) and returns
 a QA verdict: pass/fail per criterion + defects with reproduction. Run it in parallel with the
@@ -135,8 +164,9 @@ then re-run QA. Skip only when the phase ships no runnable surface (e.g. pure do
 2. **Run the chosen reviewer** on that diff across dimensions 1–6, handing it the design doc +
    this phase's plan + the project's `CLAUDE.md`/conventions as the requirements it verifies
    against. **In parallel, run the security pass** (dimension 7) via its own skill/agent **and the
-   functional QA pass** (`qa-tester`) against the running build. Merge all findings, graded
-   **Critical / Important / Minor**.
+   functional QA pass** (`qa-tester`) against the running build — **each gated by the tier table
+   above** (security only when risk-flagged at Small/Standard; E2E once at the end for
+   Small/Standard). Merge all findings, graded **Critical / Important / Minor**.
 3. **Act on findings with technical rigor** (mirrors `superpowers:receiving-code-review` — use it
    if installed): read fully, verify each finding against the codebase before implementing, push
    back with technical reasoning when a finding is wrong, no performative agreement. Fix

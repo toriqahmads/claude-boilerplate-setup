@@ -11,6 +11,11 @@ keep all three layers.
 
 **Status:** Draft
 **Source of truth:** <link to PRD / Jira / Linear / diagnosis / assessment doc, if any>
+**Complexity tier:** <Trivial | Small | Standard | Large> — <one line why> · **Risk-flagged:** <yes
+(auth/crypto/payments/PII/uploads/external-input) | no>
+<!-- Set by planning-work-in-phases Step 0.5. Every downstream phase reads this to scale ceremony:
+     phase count, execution mode, review cadence, gate depth, and how many approval gates fire. -->
+**Approval mode:** <single end gate (Small/autonomous) | milestone (Standard) | per-phase (Large)>
 
 ## Summary
 <One paragraph: what we're building and why.>
