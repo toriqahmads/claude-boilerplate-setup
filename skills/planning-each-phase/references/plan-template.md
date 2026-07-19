@@ -1,8 +1,9 @@
 # Plan Template (one per phase)
 
 Copy into `docs/plan/phases/<N-slug>/plan.md`. Write for an engineer who knows the toolset poorly
-and the domain not at all — no unstated context. Complete code in every code step; exact commands
-with expected output; no placeholders.
+and the domain not at all — no unstated context. Signatures + test cases (behavior + expected I/O)
+in every code step; exact commands with expected output; **no full bodies, no vague placeholders**
+(execution writes the bodies).
 
 ````markdown
 # Phase <N>: <Name> — Implementation Plan
@@ -32,14 +33,14 @@ with expected output; no placeholders.
 
 - [ ] **Step 1: Write the failing test**
 ```language
-// real test code
+// test case: call, expected output/error, edge cases — not the full body
 ```
 - [ ] **Step 2: Run test to verify it fails**
 Run: `<exact command>`
 Expected: FAIL with "<message>"
 - [ ] **Step 3: Write minimal implementation**
 ```language
-// real code
+// signature + one-line behavior — body written at execution
 ```
 - [ ] **Step 4: Run test to verify it passes**
 Run: `<exact command>`

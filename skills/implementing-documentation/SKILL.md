@@ -3,7 +3,8 @@ name: implementing-documentation
 description: >
   Use when implementing anything that adds or changes an API or public interface and
   needs to stay documented — API reference (OpenAPI 3.x / Swagger, GraphQL SDL, proto),
-  plus README/usage, CHANGELOG, ADRs, and runbooks. Encodes best practice: docs live in
+  plus README/usage, CHANGELOG, ADRs, runbooks, and layered per-subtree CLAUDE.md/AGENTS.md
+  project-context docs. Encodes best practice: docs live in
   the repo next to the code, generated-from-code or contract-first with a CI drift check,
   served via Swagger UI / Redoc, every operation documenting params, schemas, error/status
   semantics, auth, and examples — updated in the SAME change as the behavior, never later.
@@ -68,6 +69,13 @@ spec — same contract, now real and enforced.
   surface.
 - **Docstrings / interface comments** — on public functions, types, and modules — the
   *why*, not a restatement of the code.
+- **Project context docs (`CLAUDE.md` / `AGENTS.md`), layered per subtree** — when a change
+  creates or reshapes a **meaningful source directory**, give that directory its own light
+  `CLAUDE.md` (what this subtree is, its key files/entry points, local conventions and gotchas —
+  **pointers, not prose**) plus an `AGENTS.md` symlink beside it (`ln -s CLAUDE.md AGENTS.md`),
+  and keep the parent/root `CLAUDE.md` in sync. Same change as the structure, never later — this
+  is the layered form of the keep-docs-synced convention (the Stop doc-sync hook only nags about
+  the root). Keep each layer light so it stays maintainable; don't restate the code.
 
 ## By domain
 
@@ -97,8 +105,9 @@ spec — same contract, now real and enforced.
 Complete when the touched API surface has an accurate published spec (OpenAPI/Swagger/SDL)
 that matches the code and is served, every operation documents its schemas/errors/auth/
 examples, any drift check passes, and the supporting docs the change touches
-(README/CHANGELOG/ADR/runbook/docstrings) are updated — verified by opening the served doc
-or running the drift/validation check. Stop and report the docs added/updated, or hand back
+(README/CHANGELOG/ADR/runbook/docstrings, plus a layered `CLAUDE.md`+`AGENTS.md` symlink for
+each meaningful source directory the change created/reshaped, root kept in sync) are updated —
+verified by opening the served doc or running the drift/validation check. Stop and report the docs added/updated, or hand back
 if a docs toolchain the plan didn't scope is missing.
 
 ## Output

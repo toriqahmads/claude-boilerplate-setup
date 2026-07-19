@@ -38,6 +38,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ### Changed
 
+- **Planning stops writing full code** — `planning-each-phase`, its `plan-template` /
+  `plan-reviewer-prompt`, and `plan-writer-agent` now require each plan step to carry **exact
+  signatures + test cases (behavior + expected I/O) + exact commands/output**, not full function or
+  test **bodies**. Bodies are written at execution (phase 4), TDD. The "no placeholders" rule is
+  reconciled: a concrete signature + case is required, not a placeholder; a pasted full body is the
+  opposite failure. The `superpowers:writing-plans` delegation is instructed to defer bodies too.
+- **Layered per-subtree `CLAUDE.md` at scaffold time** — `executing-phase-plans` now creates a
+  light `CLAUDE.md` + `AGENTS.md` symlink in **each meaningful source directory** as a phase
+  scaffolds/reshapes structure (root kept in sync), gated before the phase is done;
+  `implementing-documentation` defines the doc-craft; `bootstrapping-new-project` (which stops
+  before scaffolding, so only the root exists) seeds the expectation in its handoff.
 - **`designing-an-api`** / **`api-designer-agent`** — emit the standalone **frozen contract
   artifact** instead of a prose "sketch" buried in the design doc.
 - **`breaking-down-into-phases`** — sanctioned exception to the no-layer-split rule: a backend
