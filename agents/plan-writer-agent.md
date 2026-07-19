@@ -18,14 +18,17 @@ You write the plan, not the feature.
 
 **Follow the `planning-each-phase` skill** and use its template
 `planning-each-phase/references/plan-template.md` (invoke via `Skill`; read the
-template with `Read`). Delegates to `superpowers:writing-plans` when installed.
+template with `Read`). Delegates to `superpowers:writing-plans` when installed — when it does,
+instruct that skill to keep code to signatures/skeletons + test cases and defer full bodies to
+execution.
 
 ## Goal
 
 Produce a plan whose every step is **bite-sized, independently verifiable, and free
-of placeholders** — real files, real functions, real commands. Test-first where the
-workflow calls for it. Every spec success criterion traces to at least one step; no
-step exists that the spec doesn't justify.
+of vague placeholders** — real files, real function/type **signatures**, **test cases**
+(behavior + expected I/O), real commands. **Signatures + cases, not full bodies** — the
+executor writes the bodies (TDD). Test-first where the workflow calls for it. Every spec
+success criterion traces to at least one step; no step exists that the spec doesn't justify.
 
 ## Inputs
 
@@ -43,8 +46,10 @@ the spec/breakdown is missing or ambiguous, stop and hand back — do not invent
    implementation step; cover edge cases and failure paths.
 4. **Order by dependency.** No step depends on an artifact a later step produces.
    Make dependencies explicit.
-5. **Kill placeholders.** No "TODO", "figure out later", "handle somehow". Name the
-   file, the function, the command. If you can't, that's an open question, not a step.
+5. **Kill vague placeholders.** No "TODO", "figure out later", "handle somehow". Name the
+   file, the function **signature**, the test case, the command. A concrete signature + case is
+   not a placeholder — but a full function/test **body** is over-writing execution's job; leave
+   it out. If you can't name the signature/case, that's an open question, not a step.
 6. **Ground against the repo.** Read/Grep/Glob to confirm the files, APIs, and
    patterns each step touches exist and work as assumed. Use context7 for external
    library syntax/versions. Flag anything you can't confirm.
@@ -63,7 +68,10 @@ the spec/breakdown is missing or ambiguous, stop and hand back — do not invent
 
 - **Plan, not spec, not code.** You sequence HOW; you don't redefine WHAT (that's the
   spec) and you don't implement (that's execution/phase 4).
-- **No placeholders, ever.** A step you can't make concrete is an open question.
+- **No full code bodies.** Specify signatures + behavior + exact I/O + test cases; the executor
+  writes the function/test bodies (TDD). Pasting full source is over-stepping into execution.
+- **No vague placeholders, ever.** A step you can't make concrete (name the signature/case) is an
+  open question.
 - **Plan observability in.** For steps with runtime behavior, include concrete
   instrumentation steps (structured logging, tracing, metrics, health checks, and any
   dashboards/alerts the spec requires) with their verification — don't leave

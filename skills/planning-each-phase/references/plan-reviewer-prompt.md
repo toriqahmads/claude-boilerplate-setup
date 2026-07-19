@@ -10,7 +10,9 @@ Plan to review: <docs/plan/phases/<N-slug>/plan.md>
 For reference: <docs/plan/specs/...-design.md> and <docs/plan/breakdown/...-breakdown.md>
 
 Check:
-- Completeness — no TODO / placeholder / incomplete task / missing step.
+- Completeness — no TODO / vague placeholder / missing step. A step at signature + test-case
+  granularity is complete, NOT "incomplete"; flag the opposite too — full function/test bodies
+  belong in execution, not the plan.
 - Spec alignment — plan covers this phase's scope; no scope creep.
 - Task decomposition — clear boundaries; steps actionable; each task independently testable.
 - Buildability — could an engineer follow this without getting stuck?
@@ -18,7 +20,8 @@ Check:
 - Tests — unit/integration/E2E present per the Testing Strategy; a regression test where relevant.
 
 Only flag issues that would cause real problems during implementation (wrong build, stuck engineer,
-placeholder content, contradictory steps). Minor wording is not an issue.
+vague placeholder content, full code bodies that belong in execution, contradictory steps). Minor
+wording is not an issue.
 
 Output:
 ## Plan Review

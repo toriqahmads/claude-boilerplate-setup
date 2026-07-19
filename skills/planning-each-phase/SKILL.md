@@ -25,6 +25,9 @@ ls ~/.claude/plugins/cache/*/superpowers/*/skills/writing-plans/SKILL.md 2>/dev/
 
 - **Available** → **REQUIRED SUB-SKILL:** use `superpowers:writing-plans` for each phase. Save
   each plan to `docs/plan/phases/<N-slug>/plan.md` (its skill honors user location preference).
+  **Instruct it to defer bodies:** keep code to signatures/skeletons + test cases (behavior +
+  expected I/O), leaving full function/test bodies for execution — same no-full-code rule as the
+  inline fallback.
 - **Not available** → ask the user, in one message:
   > "The `superpowers` plugin isn't installed — its `writing-plans` skill runs this best. Want
   > to install it first, or should I continue writing plans inline with the same structure?"
@@ -78,7 +81,9 @@ after the self-review.
 
 - **Task structure** — each task is a full block. Bite-sized steps are one action, 2–5 min each:
   "write the failing test", "run it, see it fail", "minimal implementation to pass", "run, see it
-  pass", "commit". Show **real code** in code steps and **exact commands + expected output**:
+  pass", "commit". Specify exact **signatures** + **test cases** (behavior + expected I/O) +
+  **exact commands + expected output** — **not** full function/test bodies; execution writes the
+  bodies (TDD):
 
   ````markdown
   ### Task N: [Component Name]
@@ -95,7 +100,8 @@ after the self-review.
   - [ ] **Step 1: Write the failing test**
 
   ```language
-  // real test code — the actual assertion, not a description
+  // test case: the call under test, exact expected output/error, edge cases —
+  // not the full body. Execution writes the assertions.
   ```
 
   - [ ] **Step 2: Run test to verify it fails**
@@ -106,7 +112,8 @@ after the self-review.
   - [ ] **Step 3: Write minimal implementation**
 
   ```language
-  // real implementation code
+  // signature + one-line behavior (validate → do → return) — no body.
+  // Execution writes the body.
   ```
 
   - [ ] **Step 4: Run test to verify it passes**
@@ -122,8 +129,8 @@ after the self-review.
   ```
   ````
 
-- **Cover all test tiers** (from the design's Testing Strategy), described by behavior with real
-  code: **unit tests** per task (the TDD steps above), **integration tests** where phases/units
+- **Cover all test tiers** (from the design's Testing Strategy), described by behavior (cases +
+  expected I/O), not full code: **unit tests** per task (the TDD steps above), **integration tests** where phases/units
   meet, and an **end-to-end test** proving the phase's user-visible behavior works through the
   real flow. The phase is not done until its E2E test passes.
 - **Configure the coverage gate** as a concrete step: set the repo's coverage tool
@@ -132,16 +139,17 @@ after the self-review.
   below 95%**, **per-file for changed files** and **global** (global set at current coverage and
   ratcheted up, never regressing on a legacy repo). Every phase's done-criteria includes "coverage
   gate green". E2E/black-box is a separate functional gate, not counted toward the %.
-- **No placeholders.** These are plan failures — never write them: "TBD" / "TODO" / "implement
-  later"; "add appropriate error handling" / "add validation" / "handle edge cases"; "write tests
-  for the above" (without the test code); "similar to Task N" (repeat the code — tasks may be read
-  out of order); steps that say what to do without showing how; references to types/functions not
-  defined in any task.
+- **No vague placeholders.** These are plan failures — never write them: "TBD" / "TODO" /
+  "implement later"; "add appropriate error handling" / "add validation" / "handle edge cases";
+  steps that say what to do without naming the signature/case; references to types/functions not
+  defined by signature in any task. (A concrete signature + described test case is **not** a
+  placeholder — it's the required granularity. Full source bodies are the opposite failure: they
+  belong to execution, not the plan.)
 
 ## Remember
 
 - Exact file paths always.
-- Complete code in every step — if a step changes code, show the code.
+- **No full code bodies** — specify the signature + behavior + exact I/O; execution writes the body.
 - Exact commands with expected output.
 - **DRY** (no repeated logic), **YAGNI** (only what the spec asks), **KISS** (simplest thing that
   works), **SOLID** (single-responsibility units, clean interfaces), **TDD**, frequent commits.
@@ -157,7 +165,8 @@ re-review.
 2. **Test coverage** — does every requirement have a test at the right tier (unit / integration /
    E2E)? Is the phase's user-visible behavior covered end-to-end? Does the plan set the **≥95%
    coverage gate** (per-file for changed files + global ratchet) and include a step to configure it?
-3. **Placeholder scan** — search for the "No placeholders" red flags above. Fix them.
+3. **Placeholder scan** — search for the "No vague placeholders" red flags above, and for any
+   full function/test bodies (those belong in execution). Fix both.
 4. **Type consistency** — do types, method signatures, and property names used in later tasks
    match what earlier tasks (and consumed earlier-phase interfaces) defined? A `clearLayers()` in
    Task 3 but `clearFullLayers()` in Task 7 is a bug — reconcile.
@@ -175,7 +184,8 @@ mirroring them). Don't hand-execute a merged plan here.
 ## Common Mistakes
 
 - One giant plan covering all phases instead of one plan per phase.
-- Placeholders instead of real code and exact commands.
+- Vague placeholders instead of concrete signatures/cases/commands.
+- Pasting full implementation/test bodies — that's execution, not planning.
 - A plan that references an interface no earlier phase's plan produced.
 - Type/name drift — `clearLayers()` in one task, `clearFullLayers()` in another.
 - Planning all phases up front when planning one at a time would keep later plans accurate.
