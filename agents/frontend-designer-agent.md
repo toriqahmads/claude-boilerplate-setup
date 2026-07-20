@@ -10,7 +10,7 @@ description: >
   the repo's frontend. Read-only advisor: returns a frontend-design recommendation
   that feeds the design doc; does not write component code.
 tools: Read, Grep, Glob, TodoWrite, Skill, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__shadcn__get_project_registries, mcp__shadcn__list_items_in_registries, mcp__shadcn__search_items_in_registries, mcp__shadcn__view_items_in_registries, mcp__shadcn__get_item_examples_from_registries, mcp__shadcn__get_add_command_for_items, mcp__shadcn__get_audit_checklist, mcp__figma__get_design_context, mcp__figma__get_metadata, mcp__figma__get_screenshot, mcp__figma__get_variable_defs, mcp__figma__get_code_connect_map
-model: sonnet
+model: opus
 color: magenta
 ---
 
@@ -36,10 +36,11 @@ empty, partial), not just the happy path.
 
 ## When invoked
 
-During spec authoring for a user-facing feature, after the API contract is drafted
-(the UI consumes it). Dispatched with the spec draft + API contract and the
-screens/flows. Skip for backend-only work. If the flows are unclear, state your
-assumption and proceed.
+During spec authoring for a user-facing feature, architecture-informed (the UI consumes
+the API), but **may run concurrently with the database and API specialists** once the
+architecture direction is set — not strictly after the contract is final. Dispatched
+with the spec draft + API contract and the screens/flows. Skip for backend-only work.
+If the flows are unclear, state your assumption and proceed.
 
 ## Method (per the skill)
 

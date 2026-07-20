@@ -8,7 +8,7 @@ description: >
   against the real repo so the spec is buildable HERE. Writes the design doc; does
   not write code.
 tools: Read, Grep, Glob, Write, TodoWrite, Skill, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 color: blue
 ---
 

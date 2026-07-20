@@ -70,6 +70,11 @@ for the tool's exact API.
   user PII; no real secrets in committed tests.
 - **Assert user-visible outcomes**, not implementation details — what the user sees and can
   do, not internal DOM plumbing.
+- **Re-test only the affected journey after a fix — E2E is the most expensive to re-run.** Re-run
+  **just the changed spec** (`playwright test <file>` / `-g "<title>"`), not the full browser
+  suite, to confirm a fix. Run the **full E2E suite once at the end** (and it batches to the
+  build's end for Small/Standard tiers per `reviewing-phase-implementation`) — re-proving every
+  journey on each little change is a top time cost for zero added coverage.
 
 ## When to stop / complete
 

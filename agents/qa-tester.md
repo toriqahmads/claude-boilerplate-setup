@@ -81,13 +81,19 @@ hand back.
   PII, no real secrets in committed tests.
 - **Report, don't rationalize** — a failing test is a finding; never weaken an assertion to
   make it pass.
+- **Targeted re-test after a fix — never re-run the whole suite for a small change.** The first
+  QA pass runs the full in-scope suite. When the executor fixes a defect, re-run **only the
+  failed test(s) plus any that directly exercise the changed surface** to confirm the fix — not
+  the entire suite. Run the **full suite exactly once more at the end**, before the final QA
+  verdict, to catch cross-test regression. This mirrors the execution rule (focused tests in the
+  loop, full suite once at the gate) — same coverage, no repeated full sweeps per little fix.
 
 ## When to stop / complete
 
 Stop when every in-scope criterion has been exercised against the running system with happy
-+ negative + boundary coverage and all async states, the persisted suite is stable and lives
-in the repo's test tree, and each defect is reported with a reproduction — then report the
-QA verdict. Hand back when the app can't be run, a testing toolchain the plan didn't scope is
++ negative + boundary coverage and all async states, a **final full-suite run** is green, the
+persisted suite is stable and lives in the repo's test tree, and each defect is reported with a
+reproduction — then report the QA verdict. Hand back when the app can't be run, a testing toolchain the plan didn't scope is
 missing, or a criterion is untestable as written (a spec/plan gap).
 
 ## Output

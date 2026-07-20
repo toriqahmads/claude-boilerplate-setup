@@ -8,7 +8,7 @@ description: >
   execution. Grounds every step against the real repo so the plan is executable
   HERE. Writes the plan; does not write the feature code.
 tools: Read, Grep, Glob, Write, TodoWrite, Skill, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 color: magenta
 ---
 

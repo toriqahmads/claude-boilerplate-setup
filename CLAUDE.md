@@ -74,10 +74,15 @@ executed build, and a reviewed result. Router + five delegatable phase skills.
 (**Trivial / Small / Standard / Large**, with a **risk flag** for auth/crypto/payments/PII/uploads/
 external-input that bumps ceremony up) and threads it through the design-doc header so every phase
 scales to it: phase count (Small = one phase), execution mode (Small = inline, not subagent-per-
-task), review cadence (per-phase for Small/Standard, per-task only for Large), phase-5 gate depth
-(security only when risk-flagged; E2E once at the end, not per phase), and how many approval gates
-fire (single end gate for Small/autonomous → per-phase for Large). Tiers cut *redundant repetition
-and forced serialization*, never the quality bar — the **≥95% coverage gate**, **security on any
+task), **which design specialists get consulted** (`brainstorming-a-goal`: Small = none/inline,
+Standard = only-relevant in parallel, Large = full set, architecture-first then the rest in
+parallel — never a serial chain), **brainstorm ceremony** (Small = ~1-3 questions, not the full
+8-step loop), **spec/plan review depth** (`reviewing-specs-and-plans`: Small = core dimensions
+only), review cadence (per-phase for Small/Standard, per-task only for Large),
+phase-5 gate depth (security only when risk-flagged; E2E once at the end, not per phase), and how
+many approval gates fire (single end gate for Small/autonomous → per-phase for Large). The
+throttle reaches **all five phase skills plus the design specialists**. Tiers cut *redundant
+repetition and forced serialization*, never the quality bar — the **≥95% coverage gate**, **security on any
 risk-flagged change**, an **E2E before done**, and spec↔code traceability hold at every tier. This
 is what keeps a small feature from paying large-feature overhead.
 
@@ -179,7 +184,12 @@ Phase-1 design squad (back the brainstorm → spec → plan → review skills):
 
 Design specialists (read-only advisors consulted during spec authoring; each returns
 a recommendation that `spec-author-agent` / the main thread folds into the design
-doc — none write code):
+doc — none write code). **Tier-gated (`brainstorming-a-goal` drives it):**
+Trivial/Small → **none** (main thread reasons inline, no specialist dispatch);
+Standard → **only the relevant** one(s), dispatched **in parallel**; Large → full set,
+`architecture-agent` first then **db + api + frontend in parallel** (never a serial
+4-deep chain). Default is inline reasoning; dispatch a specialist only when the tier
+calls for it and its domain is in scope:
 
 - `architecture-agent` — system structure: component boundaries, data/control flow,
   state and truth, consistency/failure, scalability, tech choices. Follows

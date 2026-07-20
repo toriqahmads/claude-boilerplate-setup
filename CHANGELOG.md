@@ -8,6 +8,35 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ## [Unreleased]
 
+### Performance
+
+- **Tier throttle now reaches the whole planning phase 1 — planning no longer pays large-feature
+  cost on small work.** The complexity tier previously only gated 2 of 5 planning skills, so spec
+  authoring dispatched up to **4 design specialists serially** (`architecture-agent` →
+  `database-designer-agent` → `api-designer-agent` → `frontend-designer-agent`), each doing
+  context7 + web lookups — ~15-20 min even for a Small feature. Now: **design specialists are
+  tier-gated** (Trivial/Small → none, inline reasoning; Standard → only-relevant, in parallel;
+  Large → architecture-first then db+api+frontend **in parallel**, not a serial chain —
+  `brainstorming-a-goal`); and **`brainstorming-a-goal` and `reviewing-specs-and-plans` read the
+  tier** (Small → ~1-3 questions / core review dimensions only). The speedup comes from **cutting
+  and parallelizing dispatch**, not from downgrading models — planning/design agents stay on
+  **`opus`** for quality; executors run on **`sonnet`**. Quality bar unchanged — ≥95% coverage,
+  security on risk-flagged, E2E before done, spec↔code traceability hold at every tier.
+- **Phase-5 review/QA loop no longer thrashes.** `reviewing-phase-implementation` now **re-reviews
+  only the fix delta** (the first pass audits the full phase diff; later passes verify just the
+  changed lines + no regression in touched files — not a full re-audit of already-passing code),
+  **caps at 2 re-review rounds** then escalates a still-recurring review to the user instead of
+  ping-ponging fixes, and **re-runs only the affected QA criteria** after a fix rather than the whole
+  suite. Same rigor on what changed; stops re-proving what didn't. (Complements the existing
+  execution-side throttle: focused tests in the loop, full suite + coverage once at the gate.)
+- **Targeted re-test in the QA/testing layer.** `qa-tester`, `testing-apis`, and
+  `testing-ui-and-e2e` now state the same rule the TDD loop already used: after a defect fix,
+  re-run **only the failed test(s) + those hitting the changed surface** (scoped by the runner —
+  `pytest -k`, `vitest run <path>`, `playwright test <file>/-g`), and run the **full suite exactly
+  once at the end** for cross-test regression. E2E is called out as the most expensive to re-run and
+  batches to the build's end for Small/Standard. Fixes the "re-tests the whole part after a little
+  change" behavior — no coverage lost.
+
 ### Fixed
 
 - **Duplicate hook registration on plugin install.** `plugin.json` declared

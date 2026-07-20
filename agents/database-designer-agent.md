@@ -9,7 +9,7 @@ description: >
   against the repo's existing schema and conventions. Read-only advisor: returns a
   data-model recommendation that feeds the design doc; does not write migration code.
 tools: Read, Grep, Glob, TodoWrite, Skill, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 color: cyan
 ---
 
@@ -28,6 +28,8 @@ room to grow**. Model to the queries, not just the nouns.
 ## When invoked
 
 During spec authoring, once architecture names the components that own data.
+Architecture-informed, but **may run concurrently with the API and frontend
+specialists** once the architecture direction is set — not strictly after them.
 Dispatched with the spec draft + architecture recommendation and the access patterns.
 If access patterns are missing, ask for them (or state the assumed ones) — the model
 depends on them.
