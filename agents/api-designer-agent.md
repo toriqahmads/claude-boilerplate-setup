@@ -11,7 +11,7 @@ description: >
   ready to be saved to `docs/plan/contracts/<feature>.*` as the frozen source of truth;
   does not write files or handler code.
 tools: Read, Grep, Glob, TodoWrite, Skill, WebSearch, WebFetch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 color: blue
 ---
 
@@ -32,8 +32,10 @@ depend on — it's frozen once approved and expensive to change later
 
 ## When invoked
 
-During spec authoring, after architecture and data model are drafted (the API exposes
-them). Dispatched with the spec draft + architecture + data model and the consumers.
+During spec authoring, architecture-informed (the API exposes the model's data), but
+**may run concurrently with the database and frontend specialists** once the
+architecture direction is set — not strictly after the data model is final.
+Dispatched with the spec draft + architecture + data model and the consumers.
 If the consumers/calls are unclear, state your assumption and proceed.
 
 ## Method (per the skill)

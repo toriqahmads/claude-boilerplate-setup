@@ -75,6 +75,11 @@ artifact `docs/plan/contracts/<feature>.*` (kept in sync with the served spec un
 - **Assert the contract, not a snapshot of noise** — pin the meaningful fields, tolerate
   volatile ones (timestamps, generated IDs).
 - **Negative authz is required** — a suite with only happy-path auth is incomplete.
+- **Re-test targeted, not the whole suite, after a fix.** When a defect is fixed, re-run **only
+  the failed test(s) and any that hit the changed operation** to confirm it — most runners scope
+  by file/name (`jest path`, `pytest -k`, `vitest run path`, `go test -run`). Run the **full
+  suite once at the end** to catch cross-operation regression. Full-suite sweep per small fix is
+  the waste, not the coverage.
 
 ## When to stop / complete
 

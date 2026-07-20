@@ -39,6 +39,18 @@ against its spec + breakdown; a spec is judged against the original goal / ticke
 PRD. Ground against the real repo (Read/Grep/Glob) to check that referenced files,
 APIs, and versions actually exist.
 
+## Scale the review to the tier
+
+**Read the complexity tier** from the design-doc header and scale the dimension walk to it
+— depth, not the quality bar:
+
+- **Small** — core dimensions only. Spec: {problem clarity, success criteria, interfaces,
+  consistency}. Plan: {completeness vs spec, test/TDD coverage, verification}. Skip the rest.
+- **Standard** — all dimensions, single pass.
+- **Large** — all dimensions, full adversarial depth (the default behavior below).
+- **Security is never dropped on a risk-flagged change**, any tier — always walk the
+  security-relevant dimensions (interfaces/contracts, constraints, reversibility) for it.
+
 ## Spec review dimensions
 
 1. **Problem clarity** — is the problem stated crisply, with who it's for and why now? No solution smuggled in as the problem.

@@ -14,6 +14,34 @@ criteria before any breakdown or code. Reached from `planning-work-in-phases`.
 The terminal state is an approved design doc and a hand-off to phase 2. Do NOT scaffold,
 write code, or invoke any implementation skill here.
 
+## Scale to the tier
+
+**Read the complexity tier** the router set in Step 0.5 (carried in the design-doc header)
+and scale this phase to it — the tier is the throttle, not advisory:
+
+- **Trivial** — the router skips the workflow; you won't reach this skill.
+- **Small** — short design doc, **~1-3 targeted questions** (not the full 8-step loop),
+  **no design specialists**, single approval. This is the "Too simple / already
+  brainstormed" fast path below — bound to the tier, not judged ad hoc.
+- **Standard** — normal flow; consult **only the relevant** specialists, in parallel (see
+  below).
+- **Large** — full 8-step brainstorm + the full specialist set.
+
+## Design specialists — when to consult
+
+The four design specialists (`architecture-agent`, `database-designer-agent`,
+`api-designer-agent`, `frontend-designer-agent`) are **optional read-only advisors**. The
+default is the main thread reasoning inline in the design doc — dispatch a specialist only
+when the tier row below calls for it **and** its domain is actually in scope.
+
+| Tier | Specialists | How |
+|---|---|---|
+| **Trivial / Small** | **none** | reason inline in the design doc — no specialist dispatch, no web/context7 chain |
+| **Standard** | **only the relevant** one(s) — skip DB if no schema change, skip frontend for backend-only | dispatch **in parallel** (one message, multiple Agent calls) |
+| **Large** | full set | `architecture-agent` first (the others reference its structure), then dispatch **db + api + frontend in parallel** — never a 4-deep serial chain |
+
+Do not dispatch a specialist for a domain the goal doesn't touch, at any tier.
+
 ## Delegation decision
 
 Check whether the `superpowers` plugin's brainstorming skill is available:

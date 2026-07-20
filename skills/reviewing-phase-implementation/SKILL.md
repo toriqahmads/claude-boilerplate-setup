@@ -153,7 +153,9 @@ a QA verdict: pass/fail per criterion + defects with reproduction. Run it in par
 general and security passes; merge its defects into the same Critical/Important/Minor list.
 **A failing in-scope success criterion blocks approval** — a green code review over a build that
 doesn't actually work is not done. Fix via the executor (QA reports bugs, it doesn't fix them),
-then re-run QA. Skip only when the phase ships no runnable surface (e.g. pure docs/config) — say so.
+then **re-run only the affected criteria/tests, not the whole QA suite** — the full suite already
+ran this pass; a targeted re-check of the failed criterion confirms the fix without re-proving every
+green one. Skip QA entirely when the phase ships no runnable surface (e.g. pure docs/config) — say so.
 
 ## The process
 
@@ -170,9 +172,15 @@ then re-run QA. Skip only when the phase ships no runnable surface (e.g. pure do
 3. **Act on findings with technical rigor** (mirrors `superpowers:receiving-code-review` — use it
    if installed): read fully, verify each finding against the codebase before implementing, push
    back with technical reasoning when a finding is wrong, no performative agreement. Fix
-   **Critical + Important** (dispatch a fix, then **re-review** until clean); record **Minor** in
+   **Critical + Important** (dispatch a fix, then **re-review**); record **Minor** in
    `progress.md` for triage.
-4. Loop until the agent review is clean (or only accepted Minors remain).
+4. **Re-review only the fix delta, not the whole diff.** The first pass audits the full phase diff;
+   each subsequent pass verifies the **just-changed lines** landed correctly and introduced no
+   regression in the files they touched — it does **not** re-audit unchanged code that already
+   passed. Same rigor on what moved; skip re-walking what didn't. Loop until clean (or only accepted
+   Minors remain), but **cap at 2 re-review rounds** — if findings still recur after that, the review
+   is thrashing (a spec/plan defect or a disputed finding): stop looping and **escalate to the user**
+   with the open items rather than ping-ponging fixes.
 
 ### Step 2: User review
 
@@ -217,7 +225,9 @@ Review is where spec/plan defects surface. Don't patch around them:
 - Review against the **design doc and the plan**, not just "does it look fine" — spec compliance is
   the point.
 - Agent review first, then user review — unless the user opted into fully autonomous.
-- Fix Critical + Important and **re-review**; never proceed with them open.
+- Fix Critical + Important and **re-review**; never proceed with them open. Re-review the **fix
+  delta only** (not the whole diff again), **cap at 2 rounds**, then escalate a thrashing review to
+  the user. Re-run only the **affected** QA criteria, not the full suite.
 - Apply feedback with verification and technical reasoning; no performative agreement.
 - On approval, **mark the plan DONE and stamp `progress.md` with a real timestamp** (`date -u`), then commit.
 - A spec/plan defect loops back to phase 1/3 — don't paper over it in the diff.
@@ -232,6 +242,10 @@ Review is where spec/plan defects surface. Don't patch around them:
 - Marking the plan done but forgetting to stamp `progress.md`, or stamping a fabricated timestamp
   instead of `date -u` output.
 - Patching a spec-level gap in the diff instead of updating the spec/plan and re-planning.
+- **Re-auditing the entire diff on every re-review** instead of just the fix delta, or **looping
+  fixes indefinitely** without a cap — a review that still recurs after 2 rounds is thrashing;
+  escalate to the user. Likewise re-running the **whole** QA suite after a one-line fix instead of
+  the affected criterion.
 
 ## Output
 
