@@ -1,26 +1,31 @@
 ---
 name: setting-up-claude-in-a-project
-description: Use when setting up Claude Code in a project for the first time, or when asked to "init"/"onboard"/"set up Claude" in a repo, before running any onboarding — routes to the correct setup workflow for a new vs existing project.
+description: >
+  Use when setting up Claude Code in a project for the first time, or when asked to
+  "init"/"onboard"/"set up Claude"/"bootstrap Claude" in a repo — before running any onboarding,
+  this routes to the correct setup workflow for a new vs existing project. Triggers on "set up
+  Claude here", "initialize Claude Code", "onboard this project", "first-time Claude setup", "get
+  Claude working in this repo", "start using Claude on this codebase", "/setup", or
+  /claude-boilerplate:setup.
 ---
 
 # Setting Up Claude in a Project
 
 ## Overview
 
-Router for the initial Claude Code setup phase. One job: decide whether this is a
-**new** or **existing** project, then hand off to the matching workflow skill. Do
-not do the onboarding here — route.
+Router for the initial Claude Code setup phase: decide **new** vs **existing** project, then
+hand off to the matching workflow skill.
 
 Grounded in Anthropic's official large-codebase guidance:
 https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start
 
 ## When to Use
 
-- First-time Claude Code setup in a repo ("init this project", "set up Claude here").
-- You are unsure whether to treat the project as greenfield or established.
+- First-time Claude Code setup ("init this project", "set up Claude here").
+- Unsure whether the project is greenfield or established.
 - Before touching `CLAUDE.md` / `AGENTS.md` for setup purposes.
 
-Not for: routine feature work in an already-onboarded repo.
+Not for routine feature work in an already-onboarded repo.
 
 ## The one decision
 
@@ -35,48 +40,37 @@ digraph route {
 }
 ```
 
-**"Real source code" = anything beyond docs/config scaffolding:** source files
-(`.ts`, `.py`, `.go`, …), a package manifest (`package.json`, `pyproject.toml`,
-`go.mod`, `Cargo.toml`, …), a populated `src/`/`lib`/`app` tree, migrations, tests.
+**"Real source code" = beyond docs/config scaffolding:** source files, a package manifest
+(`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, …), a populated `src`/`lib`/`app`
+tree, migrations, tests.
 
-- **Existing** — real source is present (even if messy or partly documented).
-- **New** — empty repo, or only specs/PRD/plan/brainstorm/README/`docs/`, no source
-  yet.
+- **Existing** — real source present (even if messy or undocumented).
+- **New** — empty repo, or only specs/PRD/plan/README/`docs/`, no source yet.
 
-How to check fast: `git ls-files | head`, or list the tree and grep for a manifest.
-Edge case — a repo with only a `README` + PRD and no code is **new**. A repo with a
-manifest but empty `src/` is **existing** (it declares a stack).
+Check fast: `git ls-files | head`, or grep for a manifest. A `README` + PRD with no code is
+**new**; a manifest with empty `src/` is **existing**.
 
 ## Route
 
-- Existing project → **REQUIRED SUB-SKILL:** use `onboarding-existing-project`.
-- New project → **REQUIRED SUB-SKILL:** use `bootstrapping-new-project`.
+- Existing project → **REQUIRED SUB-SKILL:** `onboarding-existing-project`.
+- New project → **REQUIRED SUB-SKILL:** `bootstrapping-new-project`.
 
-If genuinely ambiguous, ask the user one question: "Is there already source code to
-build on, or are we starting from a spec/plan?" — then route on the answer.
+Genuinely ambiguous → ask: "Source code to build on, or starting from a spec/plan?"
 
 ## Convention this setup enforces
 
-`CLAUDE.md` is the **canonical** context file. `AGENTS.md` is a **symlink** to
-`CLAUDE.md` (`ln -s CLAUDE.md AGENTS.md`), so every agent tool reads one source of
-truth. Both sub-skills follow this. Setup does **not** create or sync a project-memory
-store (`MEMORY.md` / `.claude/memory/`) — it scopes to docs (`CLAUDE.md` / `AGENTS.md`)
-and the workflow wiring (hooks / MCP / plugins).
+`CLAUDE.md` is **canonical**; `AGENTS.md` is a **symlink** to it (`ln -s CLAUDE.md AGENTS.md`).
+Both sub-skills do **not** create a project-memory store (`MEMORY.md` / `.claude/memory/`) —
+setup scopes to docs and workflow wiring (hooks / MCP / plugins).
 
-**Invariant — never overwrite an existing `CLAUDE.md`.** Create it only when absent;
-if one exists, propose changes (`.claude/setup-analysis.md`) or a git-ignored
-`CLAUDE.local.md` instead of rewriting the committed file. Both sub-skills enforce this.
+**Invariant — never overwrite an existing `CLAUDE.md`.** Create only when absent; if one exists,
+propose changes (`.claude/setup-analysis.md`) or a git-ignored `CLAUDE.local.md` instead.
 
-Both paths also confirm the plugin's **hooks** (SessionStart context, PostToolUse format,
-Stop doc-sync), which activate automatically once `claude-boilerplate` is enabled — no copy
-step, and the format hook auto-detects the project's formatter. See the `## Hooks` section of
-`CLAUDE.md`.
-
-Both paths also confirm **MCP servers**: the keyless `context7` + `playwright` + `shadcn` load
-automatically from the plugin's `.mcp.json`; the optional auth servers (`figma` / `sentry` /
-`github`) are opt-in via `install.sh` or `claude mcp add`. See the `## MCP servers` section of
-`CLAUDE.md` / `README.md`.
-
-Both paths also offer the optional **companions**: `bash scripts/install-plugins.sh` adds the
-`superpowers` + `ponytail` plugins and the `rtk` token-optimizer CLI/hook (all optional — the
-skills work without them). See the `## Plugins & external tooling` section of `CLAUDE.md`.
+Both paths also confirm:
+- **Hooks** (SessionStart context, PostToolUse format, Stop doc-sync) — active automatically once
+  enabled, format hook auto-detects the formatter (`CLAUDE.md` `## Hooks`).
+- **MCP servers**: keyless `context7` + `playwright` + `shadcn` load automatically; optional auth
+  servers (`figma`/`sentry`/`github`) are opt-in via `install.sh` (`## MCP servers`).
+- Optional **companions**: `bash scripts/install-plugins.sh` adds `superpowers` + `ponytail` and
+  the `rtk` CLI/hook, all optional (`## Plugins & external tooling`).
+</content>

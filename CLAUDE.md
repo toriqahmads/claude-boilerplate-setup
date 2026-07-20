@@ -189,7 +189,13 @@ Trivial/Small → **none** (main thread reasons inline, no specialist dispatch);
 Standard → **only the relevant** one(s), dispatched **in parallel**; Large → full set,
 `architecture-agent` first then **db + api + frontend in parallel** (never a serial
 4-deep chain). Default is inline reasoning; dispatch a specialist only when the tier
-calls for it and its domain is in scope:
+calls for it and its domain is in scope. **Domain-in-scope rule:** a specialist is
+relevant when its domain is in the goal, and the tier scales its *depth*, not whether it
+runs — **frontend/UI in scope → `frontend-designer-agent` is required** (a UI feature is
+never reduced to API-design-only; it carries the design-system + production-ready UI/UX
+bar), a data layer → `database-designer-agent`, a backend seam → `api-designer-agent`. A
+feature shipping a UI on new data behind a backend seam designs **all four** (db + api +
+frontend/design-system); only genuinely backend-only work skips the frontend design:
 
 - `architecture-agent` — system structure: component boundaries, data/control flow,
   state and truth, consistency/failure, scalability, tech choices. Follows
@@ -201,8 +207,11 @@ calls for it and its domain is in scope:
   error/status semantics, auth, versioning — as a reviewable schema sketch. Follows
   `designing-an-api`.
 - `frontend-designer-agent` — UI: component tree, state model, data fetching with full
-  async states, routing, design-system reuse, accessibility, responsive. Follows
-  `designing-a-frontend`. Skip for backend-only work.
+  async states, routing, and the **design system + production-ready UI/UX** bar (design
+  tokens, a component system reusing the repo's library / shadcn registry, every state
+  polished, accessibility, responsive, UX/interaction) — so an implemented frontend is
+  professional, not just functional. Follows `designing-a-frontend`. Required whenever UI
+  is in scope; skip only for backend-only work.
 
 Phase-4 executors (write-capable — they produce code, run tests, keep `progress.md`
 current. Each executes an approved plan's steps in its domain, test-driven, one step at
@@ -439,7 +448,7 @@ convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-un
 │   ├── architecture-agent.md                 # spec design specialist: system structure, boundaries, tech choices
 │   ├── database-designer-agent.md            # spec design specialist: data model, schema, keys/indexes, migration
 │   ├── api-designer-agent.md                 # spec design specialist: API contract, errors, auth, versioning
-│   ├── frontend-designer-agent.md            # spec design specialist: component tree, state, async states, a11y
+│   ├── frontend-designer-agent.md            # spec design specialist: component tree, state, async states, design system + production-ready UI/UX, a11y
 │   ├── backend-executor.md                   # phase-4 executor: server code (write-capable, TDD, per plan)
 │   ├── frontend-executor.md                  # phase-4 executor: UI code (write-capable, TDD, per plan)
 │   ├── database-executor.md                  # phase-4 executor: migrations/schema (write-capable, safe, per plan)
@@ -465,7 +474,7 @@ convention above) — e.g. `npm test -- --coverage`, `pytest --cov --cov-fail-un
     ├── designing-architecture/           # spec design rubric: system structure (architecture-agent follows it)
     ├── designing-a-database/             # spec design rubric: data model/schema (database-designer-agent follows it)
     ├── designing-an-api/                 # spec design rubric: API contract → standalone artifact (references/: api-contract-template; api-designer-agent follows it)
-    ├── designing-a-frontend/             # spec design rubric: UI/component/state (frontend-designer-agent follows it)
+    ├── designing-a-frontend/             # spec design rubric: UI/component/state + design system + production-ready UI/UX (frontend-designer-agent follows it)
     ├── implementing-backend/             # exec craft: server-side code (backend-executor follows it)
     ├── implementing-frontend/            # exec craft: UI code + async states + a11y (frontend-executor follows it)
     ├── implementing-database-changes/    # exec craft: migration safety, zero-downtime (database-executor follows it)

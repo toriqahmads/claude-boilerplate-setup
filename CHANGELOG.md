@@ -8,8 +8,154 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ## [Unreleased]
 
+### Changed
+
+- **All 18 subagents compacted (~1620 → ~1245 lines, ≈23%) — no behavior changed.** Each agent is the
+  "short version" of a skill it follows, but the bodies had drifted into restating the skill's full
+  method/guardrails/output. Cut that duplication down to a pointer, keeping only agent-unique content:
+  identity, the `Follow the <skill>` delegation directive, dispatch context, read-only-vs-write scope,
+  model/tier, MCP-tool guidance, and the output shape. `description:` frontmatter enriched with
+  trigger-phrase synonyms so the dispatcher picks the right agent on more wordings; `name`/`tools`/
+  `model`/`color` left byte-identical. Preserved every distinctive rule — debugger's Iron Law +
+  diagnosis-doc-only scope, reviewers' dimensions/severity/verdict + read-only, security's
+  Critical-blocks-approval, research's source-safety guardrails, executors' TDD + craft-skill links,
+  backend-executor's derive/"signatures-frozen", and `frontend-designer-agent`'s design-system +
+  production-ready UI/UX bar. Verified across all 18: valid YAML, frontmatter unchanged, skill
+  delegations intact, no tool-syntax artifacts.
+- **Planning now designs the whole UI stack for frontend features, not just the API — so a built
+  frontend is production-ready with professional UI/UX.** A UI feature is no longer reduced to
+  API-design-only. New **domain-in-scope rule** (`brainstorming-a-goal`, mirrored in `CLAUDE.md`):
+  a design specialist is relevant when its domain is in the goal, and the tier scales its *depth*,
+  not whether it runs — **frontend/UI in scope → `frontend-designer-agent` is required**, a data
+  layer → `database-designer-agent`, a backend seam → `api-designer-agent`; a feature shipping UI on
+  new data behind a seam designs **all four**. **Design-system + production-ready UI/UX folded into
+  `designing-a-frontend`** as first-class mandatory dimensions: design tokens (color/type/spacing/
+  radius/elevation/motion), a component system (reuse the repo's library / shadcn registry with
+  variants + states, Figma-grounded when connected), UX quality (every state polished — skeleton/
+  empty/error/success, purposeful reduced-motion-safe interaction, microcopy), visual hierarchy,
+  WCAG-AA a11y, and responsive design of mobile *and* desktop. `frontend-designer-agent` recommends
+  the coherent system; `implementing-frontend` gains a guardrail to **build to those tokens +
+  component system** so the shipped UI is professional, not functional-but-rough. Backend-only work
+  still skips the frontend design.
+
+- **All 29 skills optimized for density + discoverability — no rule dropped.** Two goals: (1) tighten
+  bodies so an invoked skill loads fewer tokens into the agent's context, and (2) enrich every
+  `description:` frontmatter with **trigger synonyms / alternate phrasings** so a skill activates on
+  more user wordings (e.g. `implementing-database-changes` now also matches "alter the table", "add a
+  column", "write a Prisma/Alembic/Flyway migration", "zero-downtime schema change"). Every rule,
+  guardrail, checklist item, cross-reference, `superpowers:` delegation + inline fallback, worked
+  example, and measured benchmark number was **preserved verbatim in meaning** — this was a density
+  and trigger-coverage edit, not a scope edit. Real body-word cuts landed **where the bloat actually
+  was**: the few long procedural skills (`executing-phase-plans`, `reviewing-phase-implementation`,
+  `coordinating-api-contract`, `planning-each-phase`) trimmed ~22–30%; the already-atomic design/craft
+  rubrics were near-incompressible without cutting rules, so they trimmed 3–11% and mainly gained
+  richer triggers. Verified across all 29: valid YAML frontmatter, every description leads with "Use
+  when…", load-bearing rules present (signatures-frozen, two-sided boundary test, canonicity gate,
+  tier throttle, ≥95% gate, REQUIRED SUB-SKILL directives, contract-change protocol), `references/`
+  untouched.
+
+### Reliability
+
+- **Fixed the workflow's one benchmarked edge-case failure: an executor silently broke a frozen
+  contract signature to fit validation.** In the ambiguous-variant benchmark
+  (docs/workflow-rationale.md §11) one workflow executor changed `NewVault(...) *Vault` into
+  `(*Vault, error)` so it could validate a constructor argument; its own 15 tests **adopted the new
+  signature and passed**, so it self-reported green while the frozen-contract grader failed it to
+  compile — the only defect in any arm, and it came from the *workflow* arm. **Root cause:** wanting
+  to validate a constructor input, with no rule forbidding a signature change and a self-authored
+  test suite that cannot detect one (the tests call the changed signature). **Fix, in three places:**
+  `implementing-backend` gains a **"Signatures are frozen — conform, don't redesign"** guardrail
+  (never change declared names/params/return-arity/types for validation or an edge; validate *within*
+  the signature — panic on programmer misuse or a documented default — or STOP and flag a contract
+  change) plus an input-validation split (untrusted *runtime* input is rejected where the contract
+  returns an error; a *constructor precondition* is handled inside the no-error signature);
+  `executing-phase-plans` gains a **signature-conformance self-check** before done (compile against
+  the *declared* signature, not the shipped one — a green self-test suite is not proof of conformance)
+  plus a Common Mistake. **Why it matters:** self-authored tests can't verify contract conformance —
+  only an *independent* check (the phase-5 review / provider-conformance gate, or a caller compiled
+  against the declared signature) catches this class; it is a concrete argument for the read/write
+  separation (§5) and the review gate. This 2-stage benchmark arm had no review stage, which is
+  exactly why the defect reached the grader.
+
+- **Closed the one place the benchmark measured the workflow *failing*: a hard-reasoning boundary
+  derivation on a weak model.** docs/workflow-rationale.md §11.1 measured that forcing a derivation
+  gave **no gain on haiku** for a tricky rate-limiter window boundary — the model derives the exact
+  `>=`-vs-`>` boundary wrong **~1 in 4** and ships it, because (a) the derivation ran on the same weak
+  model and (b) the arm's own tests were one-sided happy-path, so a wrong boundary passed its own
+  suite. Two safeguards now enforced across `implementing-backend`, `implementing-frontend`, and
+  `executing-phase-plans`: **(1) derivation-model-escalation** — a non-canonical hard rule (bespoke
+  boundary / formula / concurrency invariant / async race) is design-grade reasoning, so *that step*
+  runs on the **strong model even inside otherwise-cheap execution** (model-tiering *inverts* for the
+  derivation; inline on a weak model, dispatch a strong-model subagent); **(2) two-sided boundary
+  test written first** — assert the last-accepted value (`n-1`) passes **and** the first-rejected
+  (`n`) fails (frontend: the derived race discards the stale response **and** the fresh one wins), so
+  a wrong derivation fails its own test instead of shipping. The two-sided test is exactly what the
+  hidden grader used to catch these defects; the arms' one-sided tests did not. The mandatory
+  derivation was necessary but not sufficient — escalation lowers the wrong-derivation rate at the
+  source, the two-sided test catches what still slips. Quality bar unchanged (≥95% coverage,
+  security-on-risk, E2E); this is a correctness-reliability fix, not a new gate.
+
 ### Performance
 
+- **Small/Standard single-component execution is now one "derive-then-TDD" pass, not a spec→plan→
+  execute→review fan-out — recovers the workflow's defect-catch at ~⅓ the tokens.** A benchmark
+  (docs/workflow-rationale.md §11.2) showed the multi-agent chain's defect-catch on a single-component
+  task came from **one** mechanism — deriving/enumerating the edge the one-shot missed — yet cost ~3.3×
+  the tokens via separate agents each reloading context. Fix: `implementing-backend` gains a **Derive
+  before you build** step (enumerate edge cases + derive any non-trivial rule — boundary/formula/
+  concurrency invariant — with a **worked numeric example** before coding); `executing-phase-plans`
+  makes Small/Standard inline execution a single derive-then-TDD pass and adds a Common Mistake against
+  escalating a hard-reasoning small task to the full chain; `planning-work-in-phases` adds a
+  **hard-reasoning signal** that makes the derivation mandatory **without** raising the tier. Measured
+  (haiku): the derive-then-TDD single pass caught the same defects as the full chain (int64 overflow;
+  a sliding-window `>=`-vs-`>` boundary bug) at **1.12× baseline vs 3.3×**. A plain edge *checklist*
+  caught the simple edge but not the hard one — the **worked-example derivation** is the load-bearing
+  part. Full multi-agent chain reserved for genuine coordination (Large / parallel contract tracks /
+  cross-session), not defect-catch.
+- **Wall-clock: independent tasks now fan out by dependency level instead of running serially.**
+  `executing-phase-plans` gains a **Parallel execution** section — group a phase's tasks into
+  dependency levels, dispatch the independent, disjoint-file tasks in a level **concurrently, one
+  worktree each**, join before the next level. **Wall-clock per level = the slowest task, not the
+  sum** (tokens unchanged — same work in parallel; this is the latency lever, as derive-then-TDD is
+  the token lever). Generalizes the previously sole-sanctioned contract-track concurrency to any
+  independent disjoint-file tasks; a genuine data/interface dependency still runs sequentially, and
+  it's worth the worktree setup only for ≥2 non-trivial independent tasks. Delegates the fan-out to
+  `superpowers:dispatching-parallel-agents` when present.
+- **Tokens/wall-clock: the worked-example derivation is now gated on *non-canonicity*.** Benchmark G
+  (concurrent singleflight coalescer, ambiguous prompt, haiku both arms) measured the derive-then-TDD
+  arm at **1.5× tokens / 3.5× wall-clock for zero extra defects** — because singleflight is a
+  *canonical* pattern the model one-shots correctly (both arms passed a hidden `-race` grader incl. an
+  expiry stampede). `implementing-backend`, `executing-phase-plans`, and `planning-work-in-phases` now
+  **always enumerate edge cases** (cheap; catches forgotten-edge bugs) but **spend the worked-example
+  derivation only on non-canonical rules** — a named textbook pattern (singleflight, LRU/TTL, debounce,
+  standard CRUD/pagination) reuses the known shape + edge tests, no re-derivation; a bespoke formula/
+  boundary/concurrency-invariant still gets derived. Default when unsure: derive. Removes the canonical-
+  case waste while preserving the non-canonical rescue (experiment F); coverage/security/E2E gates
+  unchanged. **A canonical *shape* does not exempt a bespoke *sub-decision*** (error / expiry / eviction
+  / tie-break semantics) — those are enumerated and decided deliberately even inside a canonical pattern
+  (benchmark H surfaced a gated arm skipping the error-caching choice under a too-coarse "canonical"
+  label). Direct A/B (benchmark H) also measured the gate capping an over-derivation tail — an
+  unconditional arm spent **1.86× the tokens** re-deriving a textbook pattern the gated arm reused.
+- **`implementing-frontend` gets the same enumerate → reuse → derive discipline, in UI terms.** New
+  *Enumerate states, reuse shapes, derive only bespoke logic* section: always enumerate the state matrix
+  (data async / permission / form / responsive / i18n-RTL) — cheap, catches the forgotten-state defect;
+  reuse the canonical shape (design-system / shadcn registry / framework hook, ponytail rungs 2–4) for
+  standard form/table/modal/data-fetch instead of hand-rolling; derive **only** bespoke interaction
+  logic (optimistic-rollback, debounced-async race, custom state machine) on a concrete event sequence;
+  and a canonical component doesn't exempt a bespoke sub-decision (empty-vs-error copy, focus-return).
+  *Benchmark I (search controller — stale-response race + async states, haiku & sonnet) validated the
+  **canonical** side: all arms one-shot the race + every state (it's a canonical last-write-wins
+  pattern), and forcing the derivation cost 1.28× for zero defect gain — the frontend twin of G,
+  exactly the over-derivation the canonicity rule prevents. The **rescue** side (a genuinely
+  non-canonical frontend interaction, the analogue of F) remains unbenchmarked.*
+- **Tokens: `planning-each-phase` now tiers the plan's granularity.** A **Small** phase executes as an
+  inline derive-then-TDD pass, so the same context reads and executes the plan — pre-writing full
+  per-task 5-step TDD blocks is boilerplate that executor already runs. Small plans are now
+  **lightweight** (file map + interfaces + edge list + done-criteria: full suite + ≥95% coverage gate
+  + E2E), with the full per-task blocks reserved for **Standard/Large**, where a *separate* executor/
+  reviewer subagent consumes the plan across a context boundary and the detail earns its cost. Cuts
+  plan-authoring tokens on the common single-phase case; no quality-bearing content
+  (paths/interfaces/edges/gates/traceability) dropped.
 - **Tier throttle now reaches the whole planning phase 1 — planning no longer pays large-feature
   cost on small work.** The complexity tier previously only gated 2 of 5 planning skills, so spec
   authoring dispatched up to **4 design specialists serially** (`architecture-agent` →
