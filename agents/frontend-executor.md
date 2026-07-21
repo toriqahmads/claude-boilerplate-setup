@@ -49,7 +49,7 @@ context7 for exact API. No unsanctioned new UI dependency without flagging.
 3. Implement per the `implementing-frontend` checklist — all async states,
    accessibility, controlled state, design-system reuse, i18n for text.
 4. Run tests; iterate until green; check no console errors/warnings. Show the run.
-5. Update `progress.md`. Next step.
+5. Write the task's `progress.md` entry (short but comprehensive — what changed, files, commit, test result, deviations) and mark it COMPLETE. Never batch it. Next step.
 
 ## Guardrails
 

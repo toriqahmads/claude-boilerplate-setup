@@ -16,6 +16,8 @@ Get timestamps from `date -u +%Y-%m-%dT%H:%M:%SZ` — never fabricate them.
 **Sibling track:** <the other track's worktree/branch | none>
 
 ## Tasks
+<!-- One block per task, appended the moment the task finishes (never batched). Status is
+     COMPLETE | BLOCKED | IN PROGRESS. Keep each entry short but comprehensive. -->
 
 ### Task 1: <name> — COMPLETE
 - Changed: <one-line summary>
@@ -30,7 +32,8 @@ Get timestamps from `date -u +%Y-%m-%dT%H:%M:%SZ` — never fabricate them.
 - Needs: <decision/context to unblock>
 
 ## Phase result
-- Status: <done | in progress>
+- Status: <done | in progress>   <!-- "done" ONLY when every task above is COMPLETE and phase 5 approved -->
+
 - Finish: merge | PR #<n> | keep | discard
 - Branch/PR: <ref>
 - Conformance (contract track only): provider <PASS|FAIL|PENDING> · consumer-parity <…> · drift <…>

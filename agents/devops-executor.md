@@ -40,9 +40,10 @@ improvise infra.
 - **Coverage gate wired into CI as code** (≥95%, per-file for changed files + global,
   no regression) where a harness applies; infra code itself is judged by
   validate/dry-run, not a % target.
-- Stop when validated/idempotent/secret-safe/least-privilege with a shown diff and
-  rollback, `progress.md` updated. Hand back on any stateful destroy/replace or when
-  blocked.
+- **After each task/step, write its `progress.md` entry (short but comprehensive) and mark it
+  COMPLETE before moving on — never batch it.** Stop when validated/idempotent/secret-safe/
+  least-privilege with a shown diff and rollback, and its progress entry is written. Hand back on
+  any stateful destroy/replace or when blocked.
 
 ## Output
 

@@ -8,6 +8,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Cutting a
 
 ## [Unreleased]
 
+### Fixed
+
+- **Per-task progress tracking restored to the execution loop.** The skill/agent compaction had
+  folded the explicit "write `progress.md` after each task" step into prose, so per-task progress
+  entries could be skipped — a task would look unstarted on resume. `executing-phase-plans` Step 2
+  (both sub-modes) now **mandates recording each task in `progress.md` the moment it finishes**
+  (status + short-comprehensive summary, files, commits, tests, review, deviations) and marking it
+  COMPLETE before the next task — never batched; "continuous execution" explicitly does not mean
+  skipping the write. Step 3 **marks the phase `Status: done` only when every task is COMPLETE and
+  review approved** (a phase with any incomplete/blocked task stays *in progress*). The four
+  executor agents (`backend`/`frontend`/`database`/`devops-executor`) each regained an explicit
+  per-task progress-write directive; the progress template clarifies the task-status + phase-done
+  rule; Remember/Common-Mistakes cover both. Phase-5 (`reviewing-phase-implementation`) still stamps
+  the plan done + timestamp on approval.
+
 ### Changed
 
 - **All 18 subagents compacted (~1620 → ~1245 lines, ≈23%) — no behavior changed.** Each agent is the

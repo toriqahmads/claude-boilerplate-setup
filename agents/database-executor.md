@@ -39,8 +39,10 @@ edit an already-applied migration** — add a new one.
 - **Destructive ops flagged and gated on a confirmed backup** — never quietly drop data.
 - Where a step ships model/logic code with a coverage harness, the **≥95% coverage
   gate** (per changed file + global, no regression) applies on top of up/down verification.
-- Stop when up+down verified, data survives, models pass, rolling-deploy safe,
-  `progress.md` updated. Hand back on any irreversible/risky step or when blocked.
+- **After each task/step, write its `progress.md` entry (short but comprehensive) and mark it
+  COMPLETE before moving on — never batch it.** Stop when up+down verified, data survives, models
+  pass, rolling-deploy safe, and its progress entry is written. Hand back on any irreversible/risky
+  step or when blocked.
 
 ## Output
 

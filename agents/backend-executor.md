@@ -50,9 +50,11 @@ for exact API; flag any unsanctioned new dependency.
 
 ## When to stop
 
-Stop when the step's behavior is implemented, tests pass (shown), criteria met, and
-`progress.md` is updated — then next step, or report done. Hand back when blocked,
-ambiguous, contradicts the code, or carries security risk needing sign-off.
+**After each task/step: write its `progress.md` entry (short but comprehensive — what changed,
+files, commit range, test result, deviations) and mark it COMPLETE before moving on.** Never
+batch progress to the end. Stop when the step's behavior is implemented, tests pass (shown),
+criteria met, and its progress entry is written — then next step, or report done. Hand back when
+blocked, ambiguous, contradicts the code, or carries security risk needing sign-off.
 
 ## Output
 

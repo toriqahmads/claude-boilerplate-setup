@@ -182,6 +182,12 @@ next level.
   Global Constraints; never your session history. Answer its questions before it proceeds.
 - Implements, tests, commits, self-reviews, reports status (DONE / DONE_WITH_CONCERNS /
   NEEDS_CONTEXT / BLOCKED).
+- **Record every task in `progress.md` the moment it finishes** — the controller appends that
+  task's entry (status **COMPLETE**/BLOCKED, one-line summary, files, commit range, test result,
+  review verdict, deviations — short but comprehensive) and marks it done, **before dispatching
+  the next task**. This is mandatory and per-task, not batched to phase end. "Continuous
+  execution" means no *user* check-in between tasks — it does **not** mean skipping the
+  progress write.
 - **Review cadence is tier-driven** — reviewing after *every* task is the biggest execution
   multiplier:
   - **Large / high-risk** → **per-task**: full review (spec + quality) against the diff, verify
@@ -205,7 +211,8 @@ next level.
 
 **Sub-mode B — Inline** (mirrors `superpowers:executing-plans`):
 - Per task: mark in_progress → follow each bite-sized step exactly (plan carries code/commands)
-  → run its verifications → mark completed.
+  → run its verifications → **append the task's `progress.md` entry and mark it COMPLETE** →
+  mark the todo completed.
 - Stop and ask the moment a step is unclear or a verification fails.
 
 Both sub-modes: never start implementation on `main`/`master` without explicit user consent.
@@ -251,6 +258,12 @@ Review approves → complete development:
   PR, 3. keep as-is, 4. discard; **3 options** on detached HEAD, no merge) → execute the choice →
   clean up the worktree **only for options 1 and 4** (only one created under `.worktrees/`),
   requiring a typed `discard` confirmation for option 4.
+
+**Mark the phase done.** Once **every task of the phase is COMPLETE** in `progress.md` and review
+has approved, stamp the phase: set **Phase result → Status: done** with the reviewed-approved
+timestamp (and finish option chosen). The phase is *done* only when all its tasks are done +
+reviewed — a phase with any incomplete/blocked task stays *in progress*. `reviewing-phase-implementation`
+writes the approval timestamp; this skill flips the phase status to done on that approval.
 
 Then move to the **next phase's plan** — Step 1 — until all phases are built, reviewed, done.
 
@@ -333,8 +346,11 @@ Don't force through blockers — stop and ask.
 - **Fan out independent tasks by dependency level** (subagent mode) — one worktree each, join
   before the next; wall-clock per level = the slowest task, tokens unchanged. Only for ≥2
   non-trivial independent tasks.
-- Write progress + commits to the committed `progress.md` per phase continuously — the resume
-  ledger and shared memory.
+- **Write `progress.md` per task, continuously** — append each task's entry (status + short
+  comprehensive summary, files, commits, tests, review, deviations) and mark it COMPLETE the moment
+  it finishes, never batched; then **mark the phase Status: done once every task is COMPLETE and
+  review approved.** It is the resume ledger and shared memory — a task with no entry looks unstarted
+  on resume.
 - Reference the skills the plan tells you to; stop when blocked; never implement on
   `main`/`master` without consent.
 
@@ -354,7 +370,12 @@ Don't force through blockers — stop and ask.
   for contract-isolated tracks are fine).
 - Parallel backend/frontend **without a frozen contract**, or changing a shape in code instead of
   the contract-change protocol.
-- Not writing/committing `progress.md` continuously — resume and cross-agent review need it.
+- **Finishing a task without writing its `progress.md` entry** (or batching all entries to phase
+  end) — each task must be recorded + marked COMPLETE the moment it finishes; an unrecorded task
+  looks unstarted on resume and cross-agent review has nothing to read.
+- **Marking a phase done while a task is incomplete/blocked, or leaving it *in progress* after all
+  tasks are COMPLETE and reviewed** — the phase Status flips to done exactly when every task is done
+  and review approved.
 - Scaffolding a new tree but leaving only the root `CLAUDE.md` — each source directory needs its
   own layered docs, same phase.
 - Running a named plan whose dependencies aren't done, without warning the user.
